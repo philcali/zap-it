@@ -1,0 +1,9 @@
+!html
+
+html
+  head title "The Last Bros."
+  body @bgcolor="black"
+    >#jsapp
+      js @src="lib/melonJS-0.9.3-min.js"
+      js @src="gameObj.js"
+      js @src="main.js"
