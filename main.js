@@ -15,6 +15,30 @@ var g_resources= [{
   name: "bullet",
   type: "image",
   src: "data/images/bullet.png"
+}, {
+  name: "health_bar",
+  type: "image",
+  src: "data/images/health_bar.png"
+}, {
+  name: "one_health",
+  type: "image",
+  src: "data/images/one_health.png"
+}, {
+  name: "small_health",
+  type: "image",
+  src: "data/images/small_health.png"
+}, {
+  name: "large_health",
+  type: "image",
+  src: "data/images/large_health.png"
+}, {
+  name: "robo_car",
+  type: "image",
+  src: "data/images/robo_car.png"
+}, {
+  name: "enemy_die",
+  type: "image",
+  src: "data/images/enemy_die.png"
 }];
 
 
@@ -43,6 +67,7 @@ var jsApp	= {
 		me.state.set(me.state.PLAY, new PlayScreen());
 
     me.entityPool.add("mainPlayer", PlayerEntity);
+    me.entityPool.add("RobotCar", RobotCar);
     me.entityPool.add("x-transition", Transition);
 
     // Movement inputs
@@ -63,9 +88,15 @@ var PlayScreen = me.ScreenObject.extend({
   onResetEvent: function() {	
     // stuff to reset on state change
     me.levelDirector.loadLevel("test_area");
+
+    me.game.addHUD(16, 16, 8, 56);
+    me.game.HUD.addItem("playerHealth", new HealthBar(16, 16));
+    me.game.sort();
   },
 
-	onDestroyEvent: function() {	}
+	onDestroyEvent: function() {
+    me.game.disableHUD();
+  }
 });
 
 window.onReady(function() {
