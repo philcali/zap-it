@@ -25,7 +25,8 @@ var jsApp = {
 
     me.entityPool.add("mainPlayer", PlayerEntity);
     me.entityPool.add("RobotCar", RobotCar);
-    me.entityPool.add("x-transition", Transition);
+    me.entityPool.add("ShieldBot", ShieldBot);
+    //me.entityPool.add("x-transition", Transition);
 
     // Movement inputs
     me.input.bindKey(me.input.KEY.A, "left");

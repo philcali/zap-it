@@ -23,6 +23,7 @@
  </objectgroup>
  <objectgroup name="enemies" width="41" height="15">
   <object name="RobotCar" x="114" y="128" width="123" height="13"/>
+  <object name="ShieldBot" x="433" y="76" width="13" height="33"/>
  </objectgroup>
  <layer name="foreground" width="41" height="15">
   <data encoding="base64">

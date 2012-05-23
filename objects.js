@@ -64,3 +64,34 @@ var Bullet = me.ObjectEntity.extend({
     return true;
   }
 });
+
+var DeflectedBullet = me.ObjectEntity.extend({
+  init: function(x, y, left) {
+    var settings = {
+      image: "other_bullet",
+      spritewidth: 8
+    }
+
+    this.parent(x, y, settings);
+    this.flyLeft = left;
+    this.setVelocity(6, 7);
+    this.vel.y = -10;
+
+    this.gravity = null;
+
+    this.type = me.game.ACTION_OBJECT;
+  },
+
+  update: function() {
+    this.doWalk(this.flyLeft);
+
+    this.updateMovement();
+
+    if (this.vel.y == 0 || !me.game.viewport.isVisible(this)) {
+      me.game.remove(this);
+      return false;
+    }
+
+    return true;
+  }
+});
