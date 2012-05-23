@@ -34,7 +34,7 @@ var jsApp = {
 
     // Action inputs
     me.input.bindKey(me.input.KEY.K, "jump", true);
-    me.input.bindKey(me.input.KEY.J, "fire");
+    me.input.bindKey(me.input.KEY.J, "fire", true);
 
     // TODO: menu?
     me.input.bindKey(me.input.KEY.ENTER, "pause", true);

@@ -25,12 +25,15 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.animationspeed = me.sys.fps / 9;
     this.gravity = 0.45;
 
+    // TODO: manage megaman's walk state
     this.internalWalkFrame = 5;
 
+    this.sliding = false;
+
     // Ensure ready to fire when game loads
-    // TODO: make this better
     this.fireDelay = Math.round(this.animationspeed * 2);
-    this.fireCounter = 0;
+    this.fireCounter = this.fireDelay;
+    this.maxLiveRounds = 3;
 
     this.faceLeft = false;
 
@@ -63,22 +66,33 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.damageCounter = this.damageDelay;
   },
 
-  fire: function() {
+  doFire: function() {
+    var currentBullets = me.game.getEntityByName('bullet');
+
+    if (currentBullets.length >= this.maxLiveRounds) {
+      return;
+    }
+
+    this.firing = true;
+    this.fireCounter = this.fireDelay;
+
     var adjust = this.faceLeft ? 0 : 22;
     me.game.add(
       new Bullet(this.pos.x + adjust, this.pos.y + 4, this.faceLeft),
       this.z
     );
     me.game.sort();
-    this.fireCounter = this.fireDelay;
   },
 
-  stride: function(left) {
+  doStride: function(left) {
     this.faceLeft = left;
     this.doWalk(this.faceLeft);
     if (this.isCurrentAnimation('stand')) {
       this.setCurrentAnimation('walk');
     }
+  },
+
+  doSlide: function() {
   },
 
   doDeath: function() {
@@ -106,26 +120,26 @@ var PlayerEntity = me.ObjectEntity.extend({
       return true;
     }
 
-    var firing = me.input.isKeyPressed('fire');
-
-    if (firing && this.fireCounter == 0) this.fire();
+    if (me.input.isKeyPressed('fire')) {
+      this.doFire();
+    }
 
     if (me.input.isKeyPressed('left')) {
-      this.stride(true);
+      this.doStride(true);
     } else if (me.input.isKeyPressed('right')) {
-      this.stride(false);
+      this.doStride(false);
     } else {
       this.vel.x = 0;
-      firing ?
+      this.firing ?
         this.setCurrentAnimation('stand-shot') :
         this.setCurrentAnimation('stand');
     }
 
-    if (firing && this.vel.x != 0) {
+    if (this.firing && this.vel.x != 0) {
       this.setCurrentAnimation('walk-shot');
-    } else if (firing) {
+    } else if (this.firing) {
       this.setCurrentAnimation('stand-shot');
-    } else if (!firing && this.vel.x != 0 && (
+    } else if (!this.firing && this.vel.x != 0 && (
       this.isCurrentAnimation('walk-shot') ||
       this.isCurrentAnimation('stand-shot'))) {
 
@@ -139,7 +153,7 @@ var PlayerEntity = me.ObjectEntity.extend({
 
     if (this.falling || this.jumping) {
       this.updateColRect(2, 22, 0, 30);
-      firing ?
+      this.firing ?
         this.setCurrentAnimation('jump-shot') :
         this.setCurrentAnimation('jump');
     } else {
@@ -165,8 +179,12 @@ var PlayerEntity = me.ObjectEntity.extend({
       this.setCurrentAnimation('stand');
     }
 
-    if (this.fireCounter > 0) {
-      this.fireCounter -= 1;
+    if (this.firing) {
+      this.fireCounter --;
+
+      if (this.fireCounter <= 0) {
+        this.firing = false;
+      }
     }
 
     // Fall death

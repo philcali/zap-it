@@ -35,6 +35,7 @@ var Transition = me.InvisibleEntity.extend({
 var Bullet = me.ObjectEntity.extend({
   init: function(x, y, left) {
     var settings = {
+      name: "bullet",
       image: "bullet",
       spritewidth: 8,
       spriteheight: 6
@@ -52,11 +53,12 @@ var Bullet = me.ObjectEntity.extend({
   update: function() {
     this.doWalk(this.flyLeft);
 
-    this.updateMovement();
+    this.computeVelocity(this.vel);
+    this.pos.add(this.vel);
 
     me.game.collide(this);
 
-    if (this.vel.x == 0 || !me.game.viewport.isVisible(this)) {
+    if (!me.game.viewport.isVisible(this)) {
       me.game.remove(this);
       return false;
     }
@@ -85,9 +87,10 @@ var DeflectedBullet = me.ObjectEntity.extend({
   update: function() {
     this.doWalk(this.flyLeft);
 
-    this.updateMovement();
+    this.computeVelocity(this.vel);
+    this.pos.add(this.vel);
 
-    if (this.vel.y == 0 || !me.game.viewport.isVisible(this)) {
+    if (!me.game.viewport.isVisible(this)) {
       me.game.remove(this);
       return false;
     }

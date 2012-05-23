@@ -110,11 +110,12 @@ var EnemyBullet = Baddy.extend({
   update: function() {
     this.doWalk(this.flyLeft);
 
-    this.updateMovement();
+    this.computeVelocity(this.vel);
+    this.pos.add(this.vel);
 
     me.game.collide(this);
 
-    if (this.vel.x == 0 || !me.game.viewport.isVisible(this)) {
+    if (!me.game.viewport.isVisible(this)) {
       me.game.remove(this);
       return false;
     }
@@ -199,7 +200,7 @@ var ShieldBot = MegaEnemy.extend({
     this.fireDowntime = this.animationspeed * 20;
     this.atRest = this.fireDowntime;
 
-    this.fireInterval = this.animationspeed * 3;
+    this.fireInterval = this.animationspeed * 4;
     this.fireCounter = this.fireInterval;
     this.fireMax = 3;
 
