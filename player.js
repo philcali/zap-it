@@ -1,180 +1,3 @@
-
-var HealthBar = me.HUD_Item.extend({
-  init: function(x, y) {
-    this.parent(x, y);
-
-    this.value = 28;
-
-    this.meter = me.loader.getImage("health_bar");
-    this.one = me.loader.getImage("one_health");
-  },
-
-  draw: function(context, x, y) {
-    context.drawImage(this.meter, x, y);
-    for (var i = this.value; i > 0; i --) {
-      context.drawImage(this.one, x + 1, y + 56 - (i * 2));
-    }
-  }
-});
-
-var EnemyExplosion = me.ObjectEntity.extend({
-  init: function(x, y) {
-    var settings = {
-      image: "enemy_die",
-      spritewidth: 16
-    };
-
-    this.parent(x, y, settings);
-
-    this.animationspeed = me.sys.fps / 20;
-    this.lasting = this.animationspeed * 3;
-
-    this.type = me.game.ACTION_OBJECT;
-  },
-
-  update: function() {
-    this.lasting --;
-
-    if (this.lasting <= 0) {
-      me.game.remove(this);
-      return false;
-    }
-
-    this.parent(this);
-
-    return true;
-  }
-});
-
-var RobotCar = me.ObjectEntity.extend({
-  init: function(x, y, settings) {
-    settings.image = "robo_car";
-    settings.spritewidth = 32;
-
-    this.parent(x, y, settings);
-
-    this.addAnimation('move', [0, 1]);
-    this.addAnimation('spin', [3, 2]);
-
-    this.setCurrentAnimation('move');
-
-    this.startX = x;
-    this.endX = x + settings.width - settings.spritewidth;
-
-    this.pos.x = this.endX;
-
-    this.setVelocity(1.5, 0);
-    this.rideLeft = true;
-    this.collidable = true;
-
-    this.health = 2;
-
-    this.power = 3;
-
-    this.type = me.game.ENEMY_OBJECT;
-  },
-
-  onCollision: function(res, obj) {
-    if (obj instanceof Bullet) {
-      this.health --;
-      me.game.remove(obj);
-
-      if (this.health <= 0) {
-        var cur = this.pos;
-
-        me.game.add(new EnemyExplosion(cur.x + 10, cur.y + 5), this.z);
-        me.game.sort();
-
-        me.game.remove(this);
-      } else {
-        this.flicker(3);
-      }
-    } 
-  },
-
-  update: function() {
-    if (!this.visible) {
-      return false;
-    }
-
-    if (this.alive) {
-      if (this.rideLeft && this.pos.x <= this.startX) {
-        this.rideLeft = false;
-        if (this.isCurrentAnimation('move')) {
-          this.setCurrentAnimation('spin', 'move');
-        }
-      } else if (!this.rideLeft && this.pos.x >= this.endX) {
-        this.rideLeft = true;
-        if (this.isCurrentAnimation('move')) {
-          this.setCurrentAnimation('spin', 'move');
-        }
-      }
-
-      this.doWalk(this.rideLeft);
-    } else {
-      this.vel.x = 0;
-    }
-
-    this.updateMovement();
-
-    if (this.vel.x != 0 || this.vel.y != 0) {
-      this.parent(this);
-      return true;
-    }
-
-    return false;
-  }
-});
-
-var Transition = me.InvisibleEntity.extend({
-  init: function(x, y, settings) {
-    this.parent(x, y, settings);
-  },
-
-  onCollision: function(res, obj) {
-    if (obj instanceof PlayerEntity) {
-      var cur = me.game.viewport.pos;
-      me.game.viewport.move(cur.x + me.game.viewport.getWidth() + 16, cur.y);
-      obj.pos.set(obj.pos.x + 44, obj.pos.y);
-      
-      me.game.remove(this);
-    }
-  }
-});
-
-var Bullet = me.ObjectEntity.extend({
-  init: function(x, y, left) {
-    var settings = {
-      image: "bullet",
-      spritewidth: 8,
-      spriteheight: 6
-    };
-
-    this.parent(x, y, settings);
-
-    this.flyLeft = left;
-    this.setVelocity(5, 0);
-    this.collidable = true;
-
-    this.type = me.game.ACTION_OBJECT;
-  },
-
-  update: function() {
-    this.doWalk(this.flyLeft);
-
-    this.updateMovement();
-
-    me.game.collide(this);
-
-    if (this.vel.x == 0 || !me.game.viewport.isVisible(this)) {
-      me.game.remove(this);
-      return false;
-    }
-
-    return true;
-  }
-});
-
 var PlayerEntity = me.ObjectEntity.extend({
   init: function(x, y, settings) {
     this.parent(x, y, settings);
@@ -215,24 +38,22 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.damageCounter = 0;
     this.damaged = false;
 
-    this.health = 28;
-
-    // TODO: use this on big transitions
-    //me.game.viewport.follow(this.pos, me.game.viewport.AXIS.BOTH);
+    me.game.viewport.follow(this.pos, me.game.viewport.AXIS.HORIZONTAL);
+    // Conditionally set this for right only
+    // me.game.viewport.setDeadzone(-50, 0);
   },
 
   doDamage: function(value) {
     this.damaged = true;
     this.vel.x = this.vel.x * -0.75;
 
-    this.health -= value;
     me.game.HUD.updateItemValue("playerHealth", value * -1);
 
-    if (this.health <= 0) {
+    if (me.game.HUD.getItemValue('playerHealth') <= 0) {
       this.doDeath();
     }
 
-    // Knock him down! 
+    // Knock him down!
     if (this.vel.y > 0 && !this.falling) {
       this.vel.y = this.vel.y * -1;
     }
@@ -263,10 +84,17 @@ var PlayerEntity = me.ObjectEntity.extend({
   doDeath: function() {
     me.game.removeAll();
     // TODO: really do a game over screen
-    jsApp.loaded();
+    me.state.set(me.state.PLAY, new PlayScreen());
+    me.state.change(me.state.PLAY);
   },
 
   update: function() {
+
+    if (me.input.isKeyPressed('pause')) {
+      // Perhaps pass more in there...?
+      me.state.change(me.state.MENU, this.pos);
+    }
+
     if (this.damaged) {
       this.updateMovement();
       this.parent(this);

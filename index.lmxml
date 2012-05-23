@@ -5,5 +5,9 @@ html
   body @bgcolor="black"
     >#jsapp
       js @src="lib/melonJS-0.9.3-min.js"
-      js @src="gameObj.js"
+      js @src="objects.js"
+      js @src="baddies.js"
+      js @src="items.js"
+      js @src="player.js"
+      js @src="resources.js"
       js @src="main.js"

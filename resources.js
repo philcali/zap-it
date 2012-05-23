@@ -1,0 +1,67 @@
+// game resources
+var g_resources = [{
+  name: "mm3_8boss_shadowman",
+  type: "image",
+  src: "data/images/mm3_8boss_shadowman.png"
+}, {
+  name: "test_area",
+  type: "tmx",
+  src: "data/test_area.tmx"
+}, {
+  name: "adam_animate",
+  type: "image",
+  src: "data/images/adam_animate.png"
+}, {
+  name: "bullet",
+  type: "image",
+  src: "data/images/bullet.png"
+}, {
+  name: "health_bar",
+  type: "image",
+  src: "data/images/health_bar.png"
+}, {
+  name: "one_health",
+  type: "image",
+  src: "data/images/one_health.png"
+}, {
+  name: "small_health",
+  type: "image",
+  src: "data/images/small_health.png"
+}, {
+  name: "large_health",
+  type: "image",
+  src: "data/images/large_health.png"
+}, {
+  name: "robo_car",
+  type: "image",
+  src: "data/images/robo_car.png"
+}, {
+  name: "enemy_die",
+  type: "image",
+  src: "data/images/enemy_die.png"
+}, {
+  name: "gooseman",
+  type: "image",
+  src: "data/images/gooseman.png"
+}, {
+  name: "hit",
+  type: "image",
+  src: "data/images/hit.png"
+}, {
+  name: "other_bullet",
+  type: "image",
+  src: "data/images/other_bullet.png"
+}, {
+  name: "shield_bot",
+  type: "image",
+  src: "data/images/shield_bot.png"
+}, {
+  name: "sweeper",
+  type: "image",
+  src: "data/images/sweeper.png"
+}, {
+  name: "robot_bat",
+  type: "image",
+  src: "data/images/robot_bat.png"
+}];
+
