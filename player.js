@@ -24,19 +24,23 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.setVelocity(1.6, 7);
     this.animationspeed = me.sys.fps / 9;
     this.gravity = 0.45;
+    this.faceLeft = false;
 
     // TODO: manage megaman's walk state
     this.internalWalkFrame = 5;
 
+    // Slide behavior
+    this.slideDuration = this.animationspeed * 3;
+    this.slideCounter = 0;
     this.sliding = false;
 
-    // Ensure ready to fire when game loads
+    // Firing behavior
     this.fireDelay = Math.round(this.animationspeed * 2);
-    this.fireCounter = this.fireDelay;
+    this.fireCounter = 0;
     this.maxLiveRounds = 3;
+    this.firing = false;
 
-    this.faceLeft = false;
-
+    // Hit behavior
     this.damageDelay = this.fireDelay;
     this.damageCounter = 0;
     this.damaged = false;
@@ -46,7 +50,16 @@ var PlayerEntity = me.ObjectEntity.extend({
     // me.game.viewport.setDeadzone(-50, 0);
   },
 
+  doWalk: function(left) {
+    if (this.faceLeft && !left) {
+      this.breakSlide();
+    }
+    this.parent(left);
+  },
+
   doDamage: function(value) {
+    this.breakSlide();
+
     this.damaged = true;
     this.vel.x = this.vel.x * -0.75;
 
@@ -73,6 +86,7 @@ var PlayerEntity = me.ObjectEntity.extend({
       return;
     }
 
+    this.breakSlide();
     this.firing = true;
     this.fireCounter = this.fireDelay;
 
@@ -93,21 +107,28 @@ var PlayerEntity = me.ObjectEntity.extend({
   },
 
   doSlide: function() {
+    this.sliding = true;
+    this.slideCounter = this.slideDuration;
+    this.setCurrentAnimation('slide');
+    this.setVelocity(2.6, 7);
+  },
+
+  breakSlide: function() {
+    this.sliding = false;
+    this.setVelocity(1.6, 7);
   },
 
   doDeath: function() {
-    me.game.removeAll();
-    // TODO: really do a game over screen
-    me.state.set(me.state.PLAY, new PlayScreen());
-    me.state.change(me.state.PLAY);
+    me.game.remove(this);
+    me.game.HUD.setItemValue("playerHealth", 0);
+
+    me.game.viewport.fadeIn("#dddddd", 1000, function() {
+      me.state.set(me.state.PLAY, new PlayScreen());
+      me.state.change(me.state.PLAY);
+    });
   },
 
   update: function() {
-
-    if (me.input.isKeyPressed('pause')) {
-      // Perhaps pass more in there...?
-      me.state.change(me.state.MENU, this.pos);
-    }
 
     if (this.damaged) {
       this.updateMovement();
@@ -128,6 +149,8 @@ var PlayerEntity = me.ObjectEntity.extend({
       this.doStride(true);
     } else if (me.input.isKeyPressed('right')) {
       this.doStride(false);
+    } else if (this.sliding) {
+      this.doWalk(this.faceLeft);
     } else {
       this.vel.x = 0;
       this.firing ?
@@ -148,10 +171,12 @@ var PlayerEntity = me.ObjectEntity.extend({
     }
 
     if (me.input.isKeyPressed('jump')) {
-      this.doJump();
+      me.input.isKeyPressed('down') ?
+        this.doSlide() : this.doJump();
     }
 
     if (this.falling || this.jumping) {
+      this.breakSlide();
       this.updateColRect(2, 22, 0, 30);
       this.firing ?
         this.setCurrentAnimation('jump-shot') :
@@ -184,6 +209,14 @@ var PlayerEntity = me.ObjectEntity.extend({
 
       if (this.fireCounter <= 0) {
         this.firing = false;
+      }
+    }
+
+    if (this.sliding) {
+      this.slideCounter --;
+      if (this.slideCounter <= 0) {
+        this.breakSlide();
+        this.setCurrentAnimation('stand');
       }
     }
 

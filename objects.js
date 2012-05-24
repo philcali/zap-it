@@ -70,6 +70,7 @@ var Bullet = me.ObjectEntity.extend({
 var DeflectedBullet = me.ObjectEntity.extend({
   init: function(x, y, left) {
     var settings = {
+      name: "bullet",
       image: "other_bullet",
       spritewidth: 8
     }

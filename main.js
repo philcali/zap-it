@@ -16,12 +16,17 @@ var jsApp = {
 
     // load everything & display a loading screen
     me.state.change(me.state.LOADING);
+
+    // me.debug.renderHitBox = true;
   },
 
   loaded: function () {
+    // TODO: READY, SETTINGS, MENU
+
     me.state.set(me.state.PLAY, new PlayScreen());
 
-    me.state.set(me.state.MENU, new MenuScreen());
+    // We do our own transitions
+    me.state.setTransition(me.state.PLAY, false);
 
     me.entityPool.add("mainPlayer", PlayerEntity);
     me.entityPool.add("RobotCar", RobotCar);
@@ -31,6 +36,7 @@ var jsApp = {
     // Movement inputs
     me.input.bindKey(me.input.KEY.A, "left");
     me.input.bindKey(me.input.KEY.D, "right");
+    me.input.bindKey(me.input.KEY.S, "down");
 
     // Action inputs
     me.input.bindKey(me.input.KEY.K, "jump", true);
@@ -43,52 +49,6 @@ var jsApp = {
   }
 
 }; // jsApp
-
-var PlayScreen = me.ScreenObject.extend({
-  init: function() {
-    this.currentHealth = new HealthBar(16, 16);
-    this.currentLevel = "test_area";
-  },
-
-  onResetEvent: function(data) {
-    // stuff to reset on state change
-    me.levelDirector.loadLevel(this.currentLevel);
-
-    me.game.addHUD(16, 16, 8, 56);
-    me.game.HUD.addItem("playerHealth", this.currentHealth);
-    me.game.sort();
-
-    if (data) {
-      var player = me.game.getEntityByName("mainPlayer")[0];
-      player.pos.set(data.pos.x, data.pos.y);
-    }
-  },
-
-  onDestroyEvent: function() {
-    me.game.disableHUD();
-  }
-});
-
-var MenuScreen = me.ScreenObject.extend({
-  init: function() {
-    this.parent(true);
-  },
-
-  onResetEvent: function(position) {
-    this.position = position;
-  },
-
-  draw: function(context) {
-    context.strokeText("PAUSED", 80, 120);
-  },
-
-  update: function() {
-    if (me.input.isKeyPressed('pause')) {
-      me.state.change(me.state.PLAY, { pos: this.position });
-    }
-    return true;
-  }
-});
 
 window.onReady(function() {
   jsApp.onload();

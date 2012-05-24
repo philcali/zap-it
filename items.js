@@ -66,4 +66,3 @@ var LargeEnergy = HealthDrop.extend({
     this.parent(x, y, settings, 10, everlasting);
   }
 });
-
