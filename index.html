@@ -1,16 +1,65 @@
 <!DOCTYPE html><html>
   <head>
-    <title>The Last Bros.</title>
+    <title>Zap IT!</title>
+    <link type="text/css" rel="stylesheet" href="css/bootstrap.min.css"></link>
+    <style>body { padding-top: 40px; background-color: #000000; } .help { color: #eeeeee; } #jsapp { width: 640px; margin: auto; } </style>
   </head>
-  <body bgcolor="black">
-    <div id="jsapp">
-      <script type="text/javascript" src="lib/melonJS-0.9.3-min.js"></script>
-      <script type="text/javascript" src="objects.js"></script>
-      <script type="text/javascript" src="baddies.js"></script>
-      <script type="text/javascript" src="items.js"></script>
-      <script type="text/javascript" src="player.js"></script>
-      <script type="text/javascript" src="resources.js"></script>
-      <script type="text/javascript" src="main.js"></script>
+  <body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a href="#" class="brand">Zap IT!</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active">
+                <a href="/">The Game</a>
+              </li>
+              <li>
+                <a href="/about.html">About</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="span12">
+          <div id="jsapp">
+            <script type="text/javascript" src="lib/melonJS-0.9.3-min.js"></script>
+            <script type="text/javascript" src="objects.js"></script>
+            <script type="text/javascript" src="baddies.js"></script>
+            <script type="text/javascript" src="items.js"></script>
+            <script type="text/javascript" src="player.js"></script>
+            <script type="text/javascript" src="resources.js"></script>
+            <script type="text/javascript" src="screens.js"></script>
+            <script type="text/javascript" src="main.js"></script>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="span7 offset5 help">
+          <h3>Thanks for playing!</h3>
+          <p>Some basic controls:</p>
+          <ul>
+            <li>
+              <strong>A: left</strong>
+            </li>
+            <li>
+              <strong>D: right</strong>
+            </li>
+            <li>
+              <strong>K: jump</strong>
+            </li>
+            <li>
+              <strong>J: shoot</strong>
+            </li>
+            <li>
+              <strong>S + K: slide</strong>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </body>
 </html>

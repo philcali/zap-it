@@ -1,13 +1,52 @@
 !html
 
 html
-  head title "The Last Bros."
-  body @bgcolor="black"
-    >#jsapp
-      js @src="lib/melonJS-0.9.3-min.js"
-      js @src="objects.js"
-      js @src="baddies.js"
-      js @src="items.js"
-      js @src="player.js"
-      js @src="resources.js"
-      js @src="main.js"
+  head
+    title "Zap IT!"
+    css @href="css/bootstrap.min.css"
+    css ```
+body {
+  padding-top: 40px;
+  background-color: #000000;
+}
+
+.help {
+  color: #eeeeee;
+}
+
+#jsapp {
+  width: 640px;
+  margin: auto;
+}
+        ```
+  body
+    >.navbar.navbar-fixed-top
+      >.navbar-inner
+        >.container
+          a.brand @href ="#" "Zap IT!"
+          >.nav-collapse
+            ul.nav
+              li.active a @href="/" "The Game"
+              li a @href="/about.html" "About"
+    >.container
+      >.row
+        >.span12
+          >#jsapp
+            js @src="lib/melonJS-0.9.3-min.js"
+            js @src="objects.js"
+            js @src="baddies.js"
+            js @src="items.js"
+            js @src="player.js"
+            js @src="resources.js"
+            js @src="screens.js"
+            js @src="main.js"
+      >.row
+        >.span7.offset5.help
+          h3 "Thanks for playing!"
+          p "Some basic controls:"
+          ul
+            li strong "A" ": left"
+            li strong "D" ": right"
+            li strong "K" ": jump"
+            li strong "J" ": shoot"
+            li strong "S + K" ": slide"
