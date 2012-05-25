@@ -63,5 +63,13 @@ var g_resources = [{
   name: "robot_bat",
   type: "image",
   src: "data/images/robot_bat.png"
+}, {
+  name: "mech_bot",
+  type: "image",
+  src: "data/images/mech_bot.png"
+}, {
+  name: "spinning_bot",
+  type: "image",
+  src: "data/images/spinning_bot.png"
 }];
 

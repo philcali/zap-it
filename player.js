@@ -21,12 +21,12 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.addAnimation('damaged', [15, 16, 15]);
 
     // Adjust gravity and velocity for jump height and speed
-    this.setVelocity(1.6, 7);
+    this.setVelocity(1.6, 7.5);
     this.animationspeed = me.sys.fps / 9;
     this.gravity = 0.45;
     this.faceLeft = false;
 
-    // TODO: manage megaman's walk state
+    // TODO: manage adambot's walk state
     this.internalWalkFrame = 5;
 
     // Slide behavior
@@ -101,8 +101,14 @@ var PlayerEntity = me.ObjectEntity.extend({
   doStride: function(left) {
     this.faceLeft = left;
     this.doWalk(this.faceLeft);
+    if (this.isCurrentAnimation('walk')) {
+      return;
+    }
+
     if (this.isCurrentAnimation('stand')) {
-      this.setCurrentAnimation('walk');
+      return this.setCurrentAnimation('inch', 'walk');
+    } else if (!this.damaged && this.isCurrentAnimation('damaged')) {
+      return this.setCurrentAnimation('walk');
     }
   },
 
@@ -181,15 +187,16 @@ var PlayerEntity = me.ObjectEntity.extend({
       this.firing ?
         this.setCurrentAnimation('jump-shot') :
         this.setCurrentAnimation('jump');
+    } else if (this.sliding) {
+      this.updateColRect(2, 28, 14, 16);
     } else {
       this.updateColRect(2, 22, 6, 24);
     }
 
-    this.updateMovement();
+    var general = this.updateMovement();
+    var res = me.game.collide(this);
 
     this.parent(this);
-
-    var res = me.game.collide(this);
 
     if (res) {
       if (!this.isFlickering() && res.obj.type == me.game.ENEMY_OBJECT) {
@@ -197,7 +204,7 @@ var PlayerEntity = me.ObjectEntity.extend({
       }
     }
 
-    if (this.vel.y == 0 && (
+    if (general.y > 0 && (
         this.isCurrentAnimation('jump') ||
         this.isCurrentAnimation('jump-shot')
        )) {

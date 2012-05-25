@@ -60,6 +60,7 @@ var MegaEnemy = Baddy.extend({
   },
 
   performDeflect: function(res, bullet) {
+    bullet.alive = false;
     var left = res.x > 0;
     me.game.add(
       new DeflectedBullet(
@@ -71,23 +72,30 @@ var MegaEnemy = Baddy.extend({
     me.game.sort();
   },
 
+  doDeath: function() {
+    this.alive = false;
+
+    var cur = this.pos;
+
+    me.game.add(new EnemyExplosion(cur.x + 10, cur.y + 5), this.z);
+    me.game.sort();
+
+    me.game.remove(this);
+  },
+
   onCollision: function(res, obj) {
     if (obj instanceof Bullet) {
       me.game.remove(obj);
 
       // Can this enemy deflect bullets?
-      if (this.checkDeflect(res, obj)) {
+      // Only deflect and take damage on live rounds
+      if (obj.alive && this.checkDeflect(res, obj)) {
         this.performDeflect(res, obj);
-      } else {
+      } else if (obj.alive) {
         this.health --;
 
         if (this.health <= 0) {
-          var cur = this.pos;
-
-          me.game.add(new EnemyExplosion(cur.x + 10, cur.y + 5), this.z);
-          me.game.sort();
-
-          me.game.remove(this);
+          this.doDeath();
         } else {
           this.flicker(3);
         }
@@ -129,6 +137,105 @@ var EnemyBullet = Baddy.extend({
     }
 
     return true;
+  }
+});
+
+var FollowingEnemy = MegaEnemy.extend({
+  init: function(x, y, settings, power, health) {
+    this.parent(x, y, settings, power, health);
+
+    this.gravity = 0;
+    this.gatheredFocus = false;
+    this.lineOfSight = 100;
+    this.onladder = true;
+  },
+
+  onFocus: function() {
+    this.setVelocity(0.5, 0.5);
+  },
+
+  doMoveTowards: function(obj) {
+    this.doWalk(obj.pos.x < this.pos.x);
+    this.doClimb(obj.pos.y < this.pos.y);
+  },
+
+  update: function() {
+    if (!this.visible || !this.alive) {
+      return false;
+    }
+
+    var player = me.game.getEntityByName('mainPlayer');
+
+    if (player.length == 0) {
+      this.parent(this);
+      return false;
+    }
+
+    if (!this.gatheredFocus) {
+      if (this.distanceTo(player[0]) <= this.lineOfSight) {
+        this.gatheredFocus = true;
+        this.onFocus();
+      } else {
+        return false;
+      }
+    }
+
+    this.doMoveTowards(player[0]);
+
+    this.computeVelocity(this.vel);
+    this.pos.add(this.vel);
+
+    this.parent(this);
+    return true;
+  }
+});
+
+var RobotBat = FollowingEnemy.extend({
+  init: function(x, y, settings) {
+    settings.image = "robot_bat";
+    settings.spritewidth = 28;
+    settings.spriteheight = 23;
+
+    this.parent(x, y, settings);
+    this.setPower(3);
+    this.setHealth(1);
+
+    this.isSleeping = true;
+    this.setVelocity(0, 0);
+
+    this.addAnimation('sleeping', [4]);
+    this.addAnimation('waking', [3, 4, 3]);
+    this.addAnimation('flying', [2, 1, 0, 1]);
+
+    this.setCurrentAnimation('sleeping');
+    this.updateColRect(5, 20, -1, 0);
+  },
+
+  onFocus: function() {
+    this.setCurrentAnimation('waking', function() {
+      this.isSleeping = false;
+      this.setVelocity(0.6, 0.6);
+      this.setCurrentAnimation('flying');
+      this.updateColRect(0, 28, 0, 23);
+    });
+  },
+
+  checkDeflect: function() {
+    return this.isSleeping;
+  }
+});
+
+var SpinningBot = FollowingEnemy.extend({
+  init: function(x, y) {
+    var settings = {
+      image: "spinning_bot",
+      spritewidth: 16
+    };
+
+    this.parent(x, y, settings);
+    this.setPower(3);
+    this.setHealth(1);
+    this.lineOfSight = 150;
   }
 });
 
@@ -247,7 +354,6 @@ var ShieldBot = MegaEnemy.extend({
     this.setCurrentAnimation('stand');
 
     this.faceLeft = true;
-    this.flipX(this.faceLeft);
 
     this.firing = false;
 
@@ -263,7 +369,7 @@ var ShieldBot = MegaEnemy.extend({
 
   fire: function() {
     var adjust = this.faceLeft ? 0 : 22;
-    me.game.add(new EnemyBullet(this.pos.x - adjust, this.pos.y + 2, this.faceLeft), this.z);
+    me.game.add(new EnemyBullet(this.pos.x + adjust, this.pos.y + 2, this.faceLeft), this.z);
     me.game.sort();
   },
 
@@ -285,6 +391,7 @@ var ShieldBot = MegaEnemy.extend({
       this.atRest --;
     }
 
+    this.flipX(this.faceLeft);
     this.updateMovement();
 
     me.game.collide(this);
@@ -293,6 +400,10 @@ var ShieldBot = MegaEnemy.extend({
       this.firing = true;
       this.setCurrentAnimation('fire');
       this.atRest = this.fireDowntime;
+      var player = me.game.getEntityByName('mainPlayer');
+      if (player.length >= 1) {
+        this.faceLeft = player[0].pos.x < this.pos.x;
+      }
     }
 
     if (this.firing) {
@@ -311,6 +422,101 @@ var ShieldBot = MegaEnemy.extend({
     }
 
     this.parent(this);
+    return true;
+  }
+});
+
+var MechBot = MegaEnemy.extend({
+  init: function(x, y, settings) {
+    settings.image = "mech_bot";
+    settings.spritewidth = 46;
+    settings.spriteheight = 62;
+
+    this.parent(x, y, settings);
+    this.setPower(6);
+    this.setHealth(7);
+
+    this.faceLeft = true;
+
+    this.addAnimation('resting', [0]);
+    this.addAnimation('jumping', [2]);
+    this.addAnimation('preparing', [1]);
+
+    this.setCurrentAnimation('resting');
+
+    this.setVelocity(2.5, 9);
+    this.gravity = 0.5;
+
+    this.jumpInterval = this.animationspeed * 13;
+    this.jumpCounter = this.jumpInterval;
+  },
+
+  fire: function(player) {
+    var adjust = this.faceLeft ? 0 : 30;
+    var bullet = new EnemyBullet(
+      this.pos.x + adjust,
+      this.pos.y + 5,
+      this.faceLeft
+    );
+
+    var distance = player.pos.distance(bullet.pos);
+
+    if (player.pos.y != bullet.pos.y) {
+      bullet.setVelocity(3, player.pos.y / distance);
+    }
+
+    me.game.add(bullet, this.z);
+    me.game.sort();
+  },
+
+  doDeath: function() {
+    this.parent();
+
+    var player = me.game.getEntityByName('mainPlayer')[0];
+    var minion = new ShieldBot(this.pos.x, this.pos.y, {});
+
+    minion.faceLeft = player.pos.x < minion.pos.x;
+
+    me.game.add(minion, this.z);
+    me.game.sort();
+  },
+
+  update: function() {
+    if (!this.visible) {
+      return false;
+    }
+
+    this.updateMovement();
+    this.parent(this);
+
+    if (this.jumping || this.falling) {
+      this.setCurrentAnimation('jumping');
+      this.doWalk(this.faceLeft);
+      this.updateColRect(0, 30, 0, 62);
+    } else {
+      this.vel.x = 0;
+      this.setCurrentAnimation('resting');
+      this.updateColRect(0, 36, 12, 50);
+    }
+
+    if (this.vel.x == 0 && this.vel.y == 0) {
+      this.jumpCounter --;
+
+      if (this.jumpCounter <= 0) {
+        this.setCurrentAnimation('preparing', function() {
+          var player = me.game.getEntityByName('mainPlayer');
+
+          if (player.length >= 1) {
+            this.faceLeft = player[0].pos.x < this.pos.x;
+            this.fire(player[0]);
+          }
+
+          this.jumpCounter = this.jumpInterval;
+          this.doJump();
+        });
+      }
+    }
+
     return true;
   }
 });

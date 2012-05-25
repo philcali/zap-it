@@ -17,7 +17,7 @@ var jsApp = {
     // load everything & display a loading screen
     me.state.change(me.state.LOADING);
 
-    // me.debug.renderHitBox = true;
+    //me.debug.renderHitBox = true;
   },
 
   loaded: function () {
@@ -32,6 +32,8 @@ var jsApp = {
     me.entityPool.add("RobotCar", RobotCar);
     me.entityPool.add("ShieldBot", ShieldBot);
     me.entityPool.add("ShieldSweeper", ShieldSweeper);
+    me.entityPool.add("RobotBat", RobotBat);
+    me.entityPool.add("MechBot", MechBot);
     //me.entityPool.add("x-transition", Transition);
 
     // Movement inputs
