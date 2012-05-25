@@ -87,7 +87,9 @@ var MegaEnemy = Baddy.extend({
     var chances = Math.random(),
       x = this.pos.x,
       y = this.pos.y,
-      drop = chances < 0.60 ? new SmallEnergy(x, y) : LargeEnergy(x, y);
+      drop = chances < 0.60 ?
+        new SmallEnergy(x, y, false) :
+        new LargeEnergy(x, y, false);
 
     me.game.add(drop, this.z);
   },
@@ -238,7 +240,7 @@ var RobotBat = FollowingEnemy.extend({
   onFocus: function() {
     this.setCurrentAnimation('waking', function() {
       this.isSleeping = false;
-      this.setVelocity(0.6, 0.6);
+      this.setVelocity(0.4, 0.6);
       this.setCurrentAnimation('flying');
       this.updateColRect(0, 28, 0, 23);
     });
@@ -528,6 +530,11 @@ var MechBot = MegaEnemy.extend({
     me.game.sort();
   },
 
+  // Mech bot never drops an item
+  checkDrop: function() {
+    return false;
+  },
+
   doDeath: function() {
     this.parent();
 
@@ -548,14 +555,19 @@ var MechBot = MegaEnemy.extend({
     this.updateMovement();
     this.parent(this);
 
+
     if (this.jumping || this.falling) {
       this.setCurrentAnimation('jumping');
       this.doWalk(this.faceLeft);
-      this.updateColRect(0, 30, 0, 62);
+
+      var offset = this.faceLeft ? 0 : 16;
+      this.updateColRect(offset, 30, 0, 62);
     } else {
       this.vel.x = 0;
       this.setCurrentAnimation('resting');
-      this.updateColRect(0, 36, 12, 50);
+
+      var offset = this.faceLeft ? 0 : 8;
+      this.updateColRect(offset, 36, 12, 50);
     }
 
     if (this.vel.x == 0 && this.vel.y == 0) {

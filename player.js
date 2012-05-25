@@ -127,7 +127,6 @@ var PlayerEntity = me.ObjectEntity.extend({
   doDeath: function() {
     me.game.remove(this);
 
-
     var values = [0, -1, 1];
     for (var i = 0; i < values.length; i ++) {
       for (var j = 0; j < values.length; j ++) {

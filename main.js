@@ -17,7 +17,7 @@ var jsApp = {
     // load everything & display a loading screen
     me.state.change(me.state.LOADING);
 
-    //me.debug.renderHitBox = true;
+    // me.debug.renderHitBox = true;
   },
 
   loaded: function () {

@@ -1,5 +1,5 @@
 var GoodDrop = me.CollectableEntity.extend({
-  init: function(x, y, settings, target, power, everlasting) {
+  init: function(x, y, settings, target, power, everlasting, maxValue) {
 
     this.parent(x, y, settings);
 
@@ -11,11 +11,18 @@ var GoodDrop = me.CollectableEntity.extend({
     this.everlasting = everlasting;
     this.target = target;
     this.power = power;
+    this.maxValue = maxValue;
   },
 
   onCollision: function(res, obj) {
-    me.game.HUD.updateItemValue(this.target, this.power);
-    me.game.remove(this);
+    if (obj instanceof PlayerEntity) {
+      var current = me.game.HUD.getItemValue(this.target),
+        attempt = current + this.power,
+        set = attempt > this.maxValue ? this.maxValue : attempt;
+
+      me.game.HUD.setItemValue(this.target, set);
+      me.game.remove(this);
+    }
   },
 
   update: function() {
@@ -41,7 +48,7 @@ var GoodDrop = me.CollectableEntity.extend({
 
 var HealthDrop = GoodDrop.extend({
   init: function(x, y, settings, power, everlasting) {
-    this.parent(x, y, settings, 'playerHealth', power, everlasting);
+    this.parent(x, y, settings, 'playerHealth', power, everlasting, 28);
   }
 });
 

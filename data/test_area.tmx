@@ -26,7 +26,7 @@
   <object name="RobotBat" x="595" y="34" width="14" height="22"/>
   <object name="RobotBat" x="628" y="34" width="14" height="22"/>
   <object name="ShieldSweeper" x="546" y="174" width="217" height="15"/>
-  <object name="MechBot" x="207" y="82" width="24" height="60"/>
+  <object name="MechBot" x="829" y="99" width="24" height="60"/>
  </objectgroup>
  <objectgroup name="player" width="60" height="15">
   <object name="mainPlayer" x="31" y="157" width="16" height="16">
