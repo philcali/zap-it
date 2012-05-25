@@ -37,6 +37,10 @@ var Baddy = me.ObjectEntity.extend({
     this.collidable = true;
 
     this.type = me.game.ENEMY_OBJECT;
+  },
+
+  setPower: function(power) {
+    this.power = power;
   }
 });
 
@@ -44,6 +48,10 @@ var MegaEnemy = Baddy.extend({
   init: function(x, y, settings, power, health) {
     this.parent(x, y, settings, power);
 
+    this.health = health;
+  },
+
+  setHealth: function(health) {
     this.health = health;
   },
 
@@ -124,25 +132,20 @@ var EnemyBullet = Baddy.extend({
   }
 });
 
-var RobotCar = MegaEnemy.extend({
-  init: function(x, y, settings) {
-    settings.image = "robo_car";
-    settings.spritewidth = 32;
-
-    this.parent(x, y, settings, 3, 2);
-
-    this.addAnimation('move', [0, 1]);
-    this.addAnimation('spin', [3, 2]);
-
-    this.setCurrentAnimation('move');
+var SweepingEnemy = MegaEnemy.extend({
+  init: function(x, y, settings, power, health) {
+    this.parent(x, y, settings, power, health);
 
     this.startX = x;
     this.endX = x + settings.width - settings.spritewidth;
 
     this.pos.x = this.endX;
 
-    this.setVelocity(1.5, 0);
     this.rideLeft = true;
+  },
+
+  onTurn: function(fromLeft) {
+    this.setCurrentAnimation('spin', 'move');
   },
 
   update: function() {
@@ -154,12 +157,12 @@ var RobotCar = MegaEnemy.extend({
       if (this.rideLeft && this.pos.x <= this.startX) {
         this.rideLeft = false;
         if (this.isCurrentAnimation('move')) {
-          this.setCurrentAnimation('spin', 'move');
+          this.onTurn(!this.rideLeft);
         }
       } else if (!this.rideLeft && this.pos.x >= this.endX) {
         this.rideLeft = true;
         if (this.isCurrentAnimation('move')) {
-          this.setCurrentAnimation('spin', 'move');
+          this.onTurn(!this.rideLeft);
         }
       }
 
@@ -176,6 +179,57 @@ var RobotCar = MegaEnemy.extend({
     }
 
     return false;
+  }
+});
+
+var ShieldSweeper = SweepingEnemy.extend({
+  init: function(x, y, settings) {
+    settings.image = "sweeper";
+    settings.spritewidth = 24;
+    settings.spriteheight = 32;
+
+    this.parent(x, y, settings);
+
+    this.setHealth(3);
+    this.setPower(3);
+
+    this.addAnimation('move', [3, 4]);
+    this.addAnimation('spin', [0, 1, 2]);
+
+    this.setCurrentAnimation('move');
+
+    this.setVelocity(2.5, 0);
+  },
+
+  onTurn: function(fromLeft) {
+    this.setVelocity(0.2, 0);
+    this.setCurrentAnimation('spin', function() {
+      this.setVelocity(2.5, 0);
+      this.setCurrentAnimation('move');
+    });
+  },
+
+  checkDeflect: function(res, bullet) {
+    return (
+      (this.rideLeft && res.x > 0) ||
+      (!this.rideLeft && res.x < 0)
+    );
+  }
+});
+
+var RobotCar = SweepingEnemy.extend({
+  init: function(x, y, settings) {
+    settings.image = "robo_car";
+    settings.spritewidth = 32;
+
+    this.parent(x, y, settings, 3, 2);
+
+    this.addAnimation('move', [0, 1]);
+    this.addAnimation('spin', [3, 2]);
+
+    this.setCurrentAnimation('move');
+
+    this.setVelocity(1.5, 0);
   }
 });
 
