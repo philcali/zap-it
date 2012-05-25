@@ -306,11 +306,13 @@ var ShieldSweeper = SweepingEnemy.extend({
     this.setCurrentAnimation('move');
 
     this.setVelocity(2.5, 0);
+    this.rightExposed = this.rideLeft;
   },
 
   onTurn: function(fromLeft) {
     this.setVelocity(0.2, 0);
     this.setCurrentAnimation('spin', function() {
+      this.rightExposed = !fromLeft;
       this.setVelocity(2.5, 0);
       this.setCurrentAnimation('move');
     });
@@ -318,8 +320,8 @@ var ShieldSweeper = SweepingEnemy.extend({
 
   checkDeflect: function(res, bullet) {
     return (
-      (this.rideLeft && res.x > 0) ||
-      (!this.rideLeft && res.x < 0)
+      (this.rightExposed && res.x > 0) ||
+      (!this.rightExposed && res.x < 0)
     );
   }
 });
@@ -360,8 +362,8 @@ var ShieldBot = MegaEnemy.extend({
     this.fireDowntime = this.animationspeed * 20;
     this.atRest = this.fireDowntime;
 
-    this.fireInterval = this.animationspeed * 4;
-    this.fireCounter = this.fireInterval;
+    this.fireInterval = this.animationspeed * 4.5;
+    this.fireCounter = this.fireInterval / 2;
     this.fireMax = 3;
 
     this.shotsFired = 0;
@@ -417,6 +419,7 @@ var ShieldBot = MegaEnemy.extend({
       } else {
         this.firing = false;
         this.shotsFired = 0;
+        this.fireCounter = this.fireInterval / 2;
         this.setCurrentAnimation('stand');
       }
     }
@@ -462,7 +465,7 @@ var MechBot = MegaEnemy.extend({
     var distance = player.pos.distance(bullet.pos);
 
     if (player.pos.y != bullet.pos.y) {
-      bullet.setVelocity(3, player.pos.y / distance);
+      bullet.setVelocity(4, player.pos.y / distance);
     }
 
     me.game.add(bullet, this.z);
