@@ -16,6 +16,36 @@ var HealthBar = me.HUD_Item.extend({
   }
 });
 
+var CharacterExplosion = me.ObjectEntity.extend({
+  init: function(x, y, vx, vy) {
+    var settings = {
+      image: "enemy_die",
+      spritewidth: 16
+    };
+
+    this.parent(x, y, settings);
+    this.setVelocity(2.0, 2.0);
+    this.gravity = 0;
+
+    this.vel.x += vy == 1 || vy == -1 ? vx * 0.75 : vx;
+    this.vel.y += vx == 1 || vx == -1 ? vy * 0.75 : vy;
+  },
+
+  update: function() {
+    if (!this.visible) {
+      me.game.remove(this);
+      return false;
+    }
+
+    this.computeVelocity(this.vel);
+    this.pos.add(this.vel);
+
+    this.parent(this);
+
+    return true;
+  }
+});
+
 var Transition = me.InvisibleEntity.extend({
   init: function(x, y, settings) {
     this.parent(x, y, settings);

@@ -106,7 +106,7 @@ var PlayerEntity = me.ObjectEntity.extend({
     }
 
     if (this.isCurrentAnimation('stand')) {
-      return this.setCurrentAnimation('inch', 'walk');
+      return this.setCurrentAnimation('walk');
     } else if (!this.damaged && this.isCurrentAnimation('damaged')) {
       return this.setCurrentAnimation('walk');
     }
@@ -126,9 +126,28 @@ var PlayerEntity = me.ObjectEntity.extend({
 
   doDeath: function() {
     me.game.remove(this);
+
+
+    var values = [0, -1, 1];
+    for (var i = 0; i < values.length; i ++) {
+      for (var j = 0; j < values.length; j ++) {
+        if (!(i == 0 && j == 0)) {
+          me.game.add(new CharacterExplosion(
+            this.pos.x, this.pos.y, values[i], values[j]), this.z
+          );
+        }
+      }
+    }
+    me.game.add(new CharacterExplosion(this.pos.x, this.pos.y, 0.4, 0), this.z);
+    me.game.add(new CharacterExplosion(this.pos.x, this.pos.y, -0.4, 0), this.z);
+    me.game.add(new CharacterExplosion(this.pos.x, this.pos.y, 0, 0.4), this.z);
+    me.game.add(new CharacterExplosion(this.pos.x, this.pos.y, 0, -0.4), this.z);
+
+    me.game.sort();
+
     me.game.HUD.setItemValue("playerHealth", 0);
 
-    me.game.viewport.fadeIn("#dddddd", 1000, function() {
+    me.game.viewport.fadeIn("#dddddd", 1700, function() {
       me.state.set(me.state.PLAY, new PlayScreen());
       me.state.change(me.state.PLAY);
     });

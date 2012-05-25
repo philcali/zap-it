@@ -59,6 +59,17 @@ var MegaEnemy = Baddy.extend({
     return false;
   },
 
+  checkDrop: function() {
+    var chances = Math.random();
+    if (chances > 0.75) {
+      return false;
+    }
+
+    if (chances >= 0 && chances < 0.40) {
+      return me.game.HUD.getItemValue('playerHealth') < 28;
+    }
+  },
+
   performDeflect: function(res, bullet) {
     bullet.alive = false;
     var left = res.x > 0;
@@ -72,12 +83,25 @@ var MegaEnemy = Baddy.extend({
     me.game.sort();
   },
 
+  performDrop: function() {
+    var chances = Math.random(),
+      x = this.pos.x,
+      y = this.pos.y,
+      drop = chances < 0.60 ? new SmallEnergy(x, y) : LargeEnergy(x, y);
+
+    me.game.add(drop, this.z);
+  },
+
   doDeath: function() {
     this.alive = false;
 
     var cur = this.pos;
 
     me.game.add(new EnemyExplosion(cur.x + 10, cur.y + 5), this.z);
+
+    if (this.checkDrop()) {
+      this.performDrop();
+    }
     me.game.sort();
 
     me.game.remove(this);
@@ -228,6 +252,7 @@ var RobotBat = FollowingEnemy.extend({
 var SpinningBot = FollowingEnemy.extend({
   init: function(x, y) {
     var settings = {
+      name: "SpinningBot",
       image: "spinning_bot",
       spritewidth: 16
     };
@@ -236,6 +261,37 @@ var SpinningBot = FollowingEnemy.extend({
     this.setPower(3);
     this.setHealth(1);
     this.lineOfSight = 150;
+  }
+});
+
+var SpawnPoint = me.InvisibleEntity.extend({
+  init: function(x, y, settings) {
+    this.parent(x, y, settings);
+
+    this.liveEnemies = 3;
+    this.fireInterval = this.animationspeed * 10;
+    this.fireCounter = this.fireInterval;
+  },
+
+  spawn: function() {
+    me.game.add(new SpinningBot(this.pos.x, this.pos.y), this.z);
+    me.game.sort();
+  },
+
+  update: function() {
+    if (!this.visible) {
+      return false;
+    }
+
+    this.fireCounter --;
+    if (this.fireCounter <= 0) {
+      var spinners = me.game.getEntityByName('SpinningBot');
+
+      if (spinners < this.liveEnemies) {
+        this.spawn();
+      }
+      this.fireCounter = this.fireInterval;
+    }
   }
 });
 

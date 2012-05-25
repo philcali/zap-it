@@ -3,7 +3,7 @@ var GoodDrop = me.CollectableEntity.extend({
 
     this.parent(x, y, settings);
 
-    this.presence = this.animationspeed * 20;
+    this.presence = this.animationspeed * 30;
     this.urgency = this.presence / 5;
 
     this.setVelocity(0, 3);
@@ -66,3 +66,4 @@ var LargeEnergy = HealthDrop.extend({
     this.parent(x, y, settings, 10, everlasting);
   }
 });
+
