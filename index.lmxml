@@ -15,7 +15,7 @@ body {
 }
 
 #jsapp {
-  width: 640px;
+  width: 512px;
   margin: auto;
 }
         ```
@@ -41,7 +41,7 @@ body {
             js @src="screens.js"
             js @src="main.js"
       >.row
-        >.span7.offset5.help
+        >.span8.offset4.help
           h3 "Thanks for playing!"
           p "Some basic controls:"
           ul

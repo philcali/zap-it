@@ -29,13 +29,7 @@
   <object name="MechBot" x="829" y="99" width="24" height="60"/>
  </objectgroup>
  <objectgroup name="player" width="60" height="15">
-  <object name="mainPlayer" x="31" y="157" width="16" height="16">
-   <properties>
-    <property name="image" value="adam_animate"/>
-    <property name="spriteheight" value="30"/>
-    <property name="spritewidth" value="31"/>
-   </properties>
-  </object>
+  <object name="SpawningPoint" x="31" y="157" width="16" height="16"/>
  </objectgroup>
  <layer name="collision" width="60" height="15">
   <data encoding="base64">

@@ -1,6 +1,6 @@
 var jsApp = {
   onload: function() {
-    if (!me.video.init('jsapp', 320, 240, true, 2.0)) {
+    if (!me.video.init('jsapp', 256, 224, true, 2.0)) {
       alert("Sorry, but your browser does not support html 5 canvas.");
          return;
     }
@@ -22,13 +22,14 @@ var jsApp = {
 
   loaded: function () {
     // TODO: READY, SETTINGS, MENU
-
     me.state.set(me.state.PLAY, new PlayScreen());
+    me.state.set(me.state.MENU, new TitleScreen());
 
     // We do our own transitions
     me.state.setTransition(me.state.PLAY, false);
 
     me.entityPool.add("mainPlayer", PlayerEntity);
+    me.entityPool.add("SpawningPoint", SpawningPoint);
     me.entityPool.add("RobotCar", RobotCar);
     me.entityPool.add("ShieldBot", ShieldBot);
     me.entityPool.add("ShieldSweeper", ShieldSweeper);
@@ -48,7 +49,7 @@ var jsApp = {
     // TODO: menu?
     me.input.bindKey(me.input.KEY.ENTER, "pause", true);
 
-    me.state.change(me.state.PLAY);
+    me.state.change(me.state.MENU);
   }
 
 }; // jsApp

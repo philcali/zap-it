@@ -71,5 +71,13 @@ var g_resources = [{
   name: "spinning_bot",
   type: "image",
   src: "data/images/spinning_bot.png"
+}, {
+  name: "fontx8",
+  type: "image",
+  src: "data/images/fontx8.png"
+}, {
+  name: "zap-it-title",
+  type: "image",
+  src: "data/images/zap-it-title.png"
 }];
 

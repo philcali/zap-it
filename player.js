@@ -1,5 +1,35 @@
+var SpawningPoint = me.InvisibleEntity.extend({
+  init: function(x, y, settings) {
+    this.parent(x, y, settings);
+
+    // TODO spawn player
+    this.delay = 50;
+    this.delayCounter = this.delay;
+  },
+
+  update: function() {
+    this.delayCounter --;
+
+    if (this.delayCounter <= 0) {
+      var player = new PlayerEntity(this.pos.x, 10, { name: 'mainPlayer' });
+
+      player.doSpawn(this.pos);
+
+      me.game.add(player, this.z);
+      me.game.remove(this);
+      me.game.sort();
+    }
+
+    return false;
+  }
+});
+
 var PlayerEntity = me.ObjectEntity.extend({
   init: function(x, y, settings) {
+    settings.image = "adam_animate";
+    settings.spritewidth = 31;
+    settings.spriteheight = 30;
+
     this.parent(x, y, settings);
 
     this.addAnimation('walk', [3, 4, 5, 6]);
@@ -20,8 +50,11 @@ var PlayerEntity = me.ObjectEntity.extend({
 
     this.addAnimation('damaged', [15, 16, 15]);
 
+    this.addAnimation('spawning', [17]);
+    this.addAnimation('spawn-landed', [18, 19]);
+
     // Adjust gravity and velocity for jump height and speed
-    this.setVelocity(1.6, 7.5);
+    this.setVelocity(1.4, 7.5);
     this.animationspeed = me.sys.fps / 9;
     this.gravity = 0.45;
     this.faceLeft = false;
@@ -45,13 +78,23 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.damageCounter = 0;
     this.damaged = false;
 
+    this.spawning = false;
+    this.spawnLanded = false;
+    this.spawnDest = this.pos;
+
     me.game.viewport.follow(this.pos, me.game.viewport.AXIS.HORIZONTAL);
     // Conditionally set this for right only
     // me.game.viewport.setDeadzone(-50, 0);
   },
 
+  doSpawn: function(toPos) {
+    this.spawning = true;
+    this.spawnDest = toPos;
+    this.setCurrentAnimation('spawning');
+  },
+
   doWalk: function(left) {
-    if (this.faceLeft && !left) {
+    if (this.sliding && this.faceLeft && !left) {
       this.breakSlide();
     }
     this.parent(left);
@@ -74,7 +117,7 @@ var PlayerEntity = me.ObjectEntity.extend({
       this.vel.y = this.vel.y * -1;
     }
 
-    this.flicker(40);
+    this.flicker(50);
     this.setCurrentAnimation('damaged');
     this.damageCounter = this.damageDelay;
   },
@@ -154,6 +197,27 @@ var PlayerEntity = me.ObjectEntity.extend({
 
   update: function() {
 
+    if (this.spawning) {
+
+      if (!this.spawnLanded) {
+        this.vel.y +=1;
+        this.computeVelocity(this.vel);
+        this.pos.add(this.vel);
+
+        if (this.pos.y >= (this.spawnDest.y - 16)) {
+          this.spawnLanded = true;
+          this.flicker(10);
+          this.setCurrentAnimation('spawn-landed', function() {
+            this.spawning = false;
+            this.setCurrentAnimation('stand');
+          });
+        }
+      }
+
+      this.parent(this);
+      return true;
+    }
+
     if (this.damaged) {
       this.updateMovement();
       this.parent(this);
@@ -200,7 +264,8 @@ var PlayerEntity = me.ObjectEntity.extend({
     }
 
     if (this.falling || this.jumping) {
-      this.breakSlide();
+      if (this.sliding) this.breakSlide();
+
       this.updateColRect(2, 22, 0, 30);
       this.firing ?
         this.setCurrentAnimation('jump-shot') :
