@@ -81,6 +81,7 @@ var MegaEnemy = Baddy.extend({
       ), this.z
     );
     me.game.sort();
+    me.audio.play('deflect');
   },
 
   performDrop: function() {
@@ -105,6 +106,7 @@ var MegaEnemy = Baddy.extend({
       this.performDrop();
     }
     me.game.sort();
+    me.audio.play('enemy_explosion');
 
     me.game.remove(this);
   },
@@ -123,6 +125,7 @@ var MegaEnemy = Baddy.extend({
         if (this.health <= 0) {
           this.doDeath();
         } else {
+          me.audio.play('enemy_hit');
           this.flicker(3);
         }
       }
@@ -145,11 +148,16 @@ var EnemyBullet = Baddy.extend({
 
   onCollision: function(res, obj) {
     if (obj instanceof PlayerEntity) {
+      this.alive = false;
       me.game.remove(this);
     }
   },
 
   update: function() {
+    if (!this.alive) {
+      return false;
+    }
+
     this.doWalk(this.flyLeft);
 
     this.computeVelocity(this.vel);
@@ -158,7 +166,138 @@ var EnemyBullet = Baddy.extend({
     me.game.collide(this);
 
     if (!me.game.viewport.isVisible(this)) {
+      this.alive = false;
       me.game.remove(this);
+      return false;
+    }
+
+    return true;
+  }
+});
+
+var FBombExplosion = Baddy.extend({
+  init: function(x, y) {
+    var settings = {
+      name: "fbomb-explosion",
+      image: "fbomb-explosion",
+      spritewidth: 48
+    };
+
+    this.parent(x, y, settings, 5);
+    this.setVelocity(0, 0);
+
+    this.animationspeed = me.sys.fps / 20;
+
+    this.completeCycle = this.animationspeed * 13;
+  },
+
+  update: function() {
+    this.completeCycle --;
+
+    if (this.completeCycle <= 0) {
+      me.game.remove(this);
+      return false;
+    }
+
+    this.parent(this);
+    return true;
+  }
+});
+
+var FBomb = MegaEnemy.extend({
+  init: function(x, y, left, arching) {
+    var settings = {
+      name: "f-bomb",
+      image: "f-bomb",
+      spritewidth: 23
+    };
+
+    this.parent(x, y, settings, 5, 1);
+
+    this.addAnimation('left', [0]);
+    this.addAnimation('right', [1]);
+    this.addAnimation('spinning', [0, 1]);
+    this.addAnimation('ready', [2]);
+
+    this.flyLeft = left;
+    this.arching = arching;
+
+    this.gravity = 0.50;
+
+    left ?
+      this.setCurrentAnimation('left') :
+      this.setCurrentAnimation('right');
+
+    arching ?
+      this.setVelocity(2, 10) :
+      this.setVelocity(4, 0);
+  },
+
+  checkDeflect: function() {
+    return true;
+  },
+
+  checkDrop: function() {
+    return false;
+  },
+
+  doExplode: function() {
+    this.setCurrentAnimation('ready', function() {
+      this.alive = false;
+      var explosion = new FBombExplosion(
+        this.pos.x,
+        this.pos.y + 13
+      );
+
+      me.game.add(explosion, this.z);
+      me.game.sort();
+      me.audio.play('fbomb');
+
+      me.game.remove(this);
+    });
+  },
+
+  onCollision: function(res, obj) {
+    this.parent(res, obj);
+
+    if (obj instanceof PlayerEntity) {
+      this.doExplode();
+    }
+  },
+
+  update: function() {
+    if (!this.alive) {
+      return false;
+    }
+
+    if (this.arching && !this.isCurrentAnimation('ready')) {
+      this.doJump();
+    }
+
+    if (!this.isCurrentAnimation('ready')) {
+      this.doWalk(this.flyLeft);
+      if (!this.flyLeft) {
+        this.flipX(true);
+      }
+    }
+
+    if (this.jumping) {
+      this.setCurrentAnimation('spinning');
+    }
+
+    var res = this.updateMovement();
+
+    this.parent(this);
+
+    if (res) {
+      if (res.x != 0 || res.y != 0) {
+        this.doExplode();
+        return true;
+      }
+    }
+
+    if (this.vel.y == 0 && this.vel.x == 0) {
+      this.doExplode();
       return false;
     }
 
@@ -266,16 +405,16 @@ var SpinningBot = FollowingEnemy.extend({
   }
 });
 
-var SpawnPoint = me.InvisibleEntity.extend({
+var SpinningSpawnPoint = me.InvisibleEntity.extend({
   init: function(x, y, settings) {
     this.parent(x, y, settings);
 
     this.liveEnemies = 3;
-    this.fireInterval = this.animationspeed * 10;
+    this.fireInterval = 100;
     this.fireCounter = this.fireInterval;
   },
 
-  spawn: function() {
+  doSpawn: function() {
     me.game.add(new SpinningBot(this.pos.x, this.pos.y), this.z);
     me.game.sort();
   },
@@ -290,10 +429,12 @@ var SpawnPoint = me.InvisibleEntity.extend({
       var spinners = me.game.getEntityByName('SpinningBot');
 
       if (spinners < this.liveEnemies) {
-        this.spawn();
+        this.doSpawn();
       }
       this.fireCounter = this.fireInterval;
     }
+
+    return false;
   }
 });
 
@@ -431,6 +572,7 @@ var ShieldBot = MegaEnemy.extend({
     var adjust = this.faceLeft ? 0 : 22;
     me.game.add(new EnemyBullet(this.pos.x + adjust, this.pos.y + 2, this.faceLeft), this.z);
     me.game.sort();
+    me.audio.play('enemy_shoot');
   },
 
   checkDeflect: function(res, bullet) {
@@ -528,6 +670,7 @@ var MechBot = MegaEnemy.extend({
 
     me.game.add(bullet, this.z);
     me.game.sort();
+    me.audio.play('enemy_shoot');
   },
 
   // Mech bot never drops an item
@@ -585,6 +728,250 @@ var MechBot = MegaEnemy.extend({
           this.jumpCounter = this.jumpInterval;
           this.doJump();
         });
+      }
+    }
+
+    return true;
+  }
+});
+
+var Gooseman = MegaEnemy.extend({
+  init: function(x, y, settings) {
+    settings.image = 'gooseman';
+    settings.spriteheight = 32;
+    settings.spritewidth = 36;
+
+    this.parent(x, y, settings, 5, 28);
+
+    this.setVelocity(0, 10);
+    this.gravity = 0.50;
+
+    this.faceLeft = true;
+
+    this.addAnimation('stand', [0]);
+    this.addAnimation('squat', [1]);
+    this.addAnimation('jump', [2]);
+    this.addAnimation('bang-chest', [3, 4, 3, 4]);
+
+    this.addAnimation('ready', [5]);
+    this.addAnimation('release', [6]);
+
+    // TODO: rage release
+    this.addAnimation('rage', [3, 4, 5]);
+
+    this.setCurrentAnimation('jump');
+
+    this.healthBar = new BossHealth(24, 16);
+    this.healthBar.value = 0;
+    me.game.HUD.addItem('gooseHealth', this.healthBar);
+    me.game.sort();
+
+    this.readyLanded = false;
+    this.ready = false;
+
+    this.fillingBar = false;
+    this.filledBar = false;
+
+    this.fillDelay = 3;
+
+    this.performing = false;
+    this.performingState = 'homing';
+
+    this.currentBomb = null;
+
+    this.urgent = false;
+    this.urgentHealth = this.health * 0.25;
+
+    me.audio.playTrack("boss_music");
+
+    // Initially lock player controls
+    me.input.unbindKey(me.input.KEY.A);
+    me.input.unbindKey(me.input.KEY.D);
+    me.input.unbindKey(me.input.KEY.J);
+    me.input.unbindKey(me.input.KEY.K);
+  },
+
+  locatePlayer: function() {
+    var player = me.game.getEntityByName('mainPlayer');
+    return (player.length >= 1) ? player[0] : null;
+  },
+
+  doReadyLanded: function() {
+    this.readyLanded = true;
+    this.setCurrentAnimation('bang-chest', function() {
+      this.setCurrentAnimation('release', function() {
+        this.fillingBar = true;
+        this.setCurrentAnimation('ready');
+      });
+    });
+  },
+
+  checkPerformingState: function() {
+    if (this.performingState == 'homing') {
+      return (
+        this.isCurrentAnimation('ready') ||
+        (this.jumping || this.falling)
+      );
+    } else if (this.performingState == 'fbomb') {
+      return this.currentBomb.alive;
+    }
+  },
+
+  doHomingJump: function(player) {
+    this.performing = true;
+    this.performingState = 'homing';
+
+    var distance = player.pos.distance(this.pos);
+
+    this.setCurrentAnimation('ready', function() {
+      if (player.pos.x != this.pos.x) {
+        var mult = this.faceLeft ? -1 : 1;
+        this.setVelocity((distance / (me.sys.fps * 0.75)) + (player.vel.x * mult), 10);
+      } else {
+        this.setVelocity(0, 10);
+      }
+
+      if (this.urgent) {
+        var bomb = new FBomb(this.pos.x, this.pos.y, this.faceLeft, true);
+        bomb.setVelocity(this.vel.x * -1, 10);
+        bomb.vel.y -= 10;
+
+        me.game.add(bomb, this.z);
+        me.game.sort();
+      }
+
+      this.doJump();
+    });
+  },
+
+  doFBomb: function(player) {
+    this.performing = true;
+    this.performingState = 'fbomb';
+
+    var adjust = this.faceLeft ? 0 : 32;
+
+    this.currentBomb = new FBomb(
+      this.pos.x + adjust,
+      this.pos.y + 5,
+      this.faceLeft,
+      false
+    );
+
+    this.addedBomb = false;
+
+    this.setCurrentAnimation('rage', function() {
+      this.setCurrentAnimation('release', function() {
+        if (this.addedBomb) {
+          return;
+        }
+
+        if (this.urgent) {
+          var bomb = new FBomb(this.pos.x, this.pos.y, !this.faceLeft, true);
+          bomb.vel.y -= 5;
+          me.game.add(bomb, this.z);
+        }
+        me.game.add(this.currentBomb, this.z);
+        me.game.sort();
+        this.addedBomb = true;
+      });
+    });
+  },
+
+  doReady: function() {
+    me.input.bindKey(me.input.KEY.A, 'left');
+    me.input.bindKey(me.input.KEY.D, 'right');
+    me.input.bindKey(me.input.KEY.J, 'fire', true);
+    me.input.bindKey(me.input.KEY.K, 'jump', true);
+
+    this.ready = true;
+  },
+
+  doFillBar: function() {
+    this.fillDelay --;
+    if (this.fillDelay <= 0) {
+      me.game.HUD.updateItemValue('gooseHealth', 1);
+      this.fillDelay = 3;
+      me.audio.play('one_health');
+    }
+
+    if (me.game.HUD.getItemValue('gooseHealth') == this.health) {
+      this.filledBar = true;
+      this.fillingBar = false;
+    }
+  },
+
+  doDeath: function() {
+    me.audio.stopTrack();
+    me.game.remove(this);
+
+    new ExplosionFactory(this);
+
+    me.audio.play('death', false, function() {
+      me.audio.play('beat_boss', false, function() {
+        // Fade to black
+      });
+    })
+  },
+
+  onCollision: function(res, obj) {
+    var prev = this.health;
+
+    this.parent(res, obj);
+
+    if (prev != this.health) {
+      me.game.add(new CharacterHit(this), this.z + 1);
+      me.game.sort();
+
+      me.game.HUD.setItemValue('gooseHealth', this.health);
+
+      this.urgent = this.health <= this.urgentHealth;
+    }
+  },
+
+  update: function() {
+    this.flipX(this.faceLeft);
+
+    var res = this.updateMovement();
+
+    this.parent(this);
+
+    if (!this.ready) {
+      // Landed
+      if (!this.readyLanded && this.vel.y == 0) {
+        this.doReadyLanded();
+      } else if (this.fillingBar) {
+        this.doFillBar();
+      } else if (this.filledBar) {
+        this.doReady();
+      }
+      return true;
+    }
+
+    if (this.performing) {
+      this.performing = this.checkPerformingState();
+    }
+
+    if (this.falling || this.jumping) {
+      this.setCurrentAnimation('jump');
+      this.updateColRect(3, 30, 5, 27);
+      this.doWalk(this.faceLeft);
+    } else if (!this.performing) {
+      this.vel.x = 0;
+      this.setCurrentAnimation('stand');
+      this.updateColRect(3, 30, 1, 31);
+    }
+
+    if (!this.performing) {
+      var player = this.locatePlayer();
+
+      if (player) {
+        this.faceLeft = player.pos.x < this.pos.x;
+
+        if (this.performingState == 'homing') {
+          this.doFBomb(player);
+        } else {
+          this.doHomingJump(player);
+        }
       }
     }
 

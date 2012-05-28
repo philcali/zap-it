@@ -120,6 +120,7 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.flicker(50);
     this.setCurrentAnimation('damaged');
     this.damageCounter = this.damageDelay;
+    me.audio.play('hit');
   },
 
   doFire: function() {
@@ -139,6 +140,7 @@ var PlayerEntity = me.ObjectEntity.extend({
       this.z
     );
     me.game.sort();
+    me.audio.play('shoot');
   },
 
   doStride: function(left) {
@@ -170,22 +172,10 @@ var PlayerEntity = me.ObjectEntity.extend({
   doDeath: function() {
     me.game.remove(this);
 
-    var values = [0, -1, 1];
-    for (var i = 0; i < values.length; i ++) {
-      for (var j = 0; j < values.length; j ++) {
-        if (!(i == 0 && j == 0)) {
-          me.game.add(new CharacterExplosion(
-            this.pos.x, this.pos.y, values[i], values[j]), this.z
-          );
-        }
-      }
-    }
-    me.game.add(new CharacterExplosion(this.pos.x, this.pos.y, 0.4, 0), this.z);
-    me.game.add(new CharacterExplosion(this.pos.x, this.pos.y, -0.4, 0), this.z);
-    me.game.add(new CharacterExplosion(this.pos.x, this.pos.y, 0, 0.4), this.z);
-    me.game.add(new CharacterExplosion(this.pos.x, this.pos.y, 0, -0.4), this.z);
+    me.audio.stopTrack();
+    me.audio.play('death');
 
-    me.game.sort();
+    new ExplosionFactory(this);
 
     me.game.HUD.setItemValue("playerHealth", 0);
 
@@ -292,6 +282,7 @@ var PlayerEntity = me.ObjectEntity.extend({
         this.isCurrentAnimation('jump-shot')
        )) {
       this.setCurrentAnimation('stand');
+      me.audio.play('landing');
     }
 
     if (this.firing) {
@@ -311,7 +302,7 @@ var PlayerEntity = me.ObjectEntity.extend({
     }
 
     // Fall death
-    if (!me.game.viewport.isVisible(this)) {
+    if (this.pos.y > (me.game.viewport.pos.y + me.game.viewport.height)) {
       this.doDeath();
     }
 

@@ -16,6 +16,44 @@ var HealthBar = me.HUD_Item.extend({
   }
 });
 
+var BossHealth = HealthBar.extend({
+  init: function(x, y) {
+    this.parent(x, y);
+    this.one = me.loader.getImage("one_goose_health");
+  },
+
+  draw: function(context, x, y) {
+    this.parent(context, x + 16, y);
+  }
+});
+
+var CharacterHit = me.ObjectEntity.extend({
+  init: function(target) {
+    var settings = {
+      image: "hit",
+      spritewidth: 24
+    };
+
+    this.parent(target.pos.x + 5, target.pos.y + 5, settings);
+    this.presence = 10;
+    this.target = target;
+    this.setVelocity(0, 0);
+    this.flicker(this.presence);
+  },
+
+  update: function() {
+    this.pos.set(this.target.pos.x + 5, this.target.pos.y + 5);
+    this.parent(this);
+
+    this.presence --;
+    if (this.presence <= 0) {
+      me.game.remove(this);
+    }
+
+    return true;
+  }
+});
+
 var CharacterExplosion = me.ObjectEntity.extend({
   init: function(x, y, vx, vy) {
     var settings = {
@@ -43,6 +81,27 @@ var CharacterExplosion = me.ObjectEntity.extend({
     this.parent(this);
 
     return true;
+  }
+});
+
+var ExplosionFactory = Object.extend({
+  init: function(obj) {
+    var values = [0, -1, 1];
+    for (var i = 0; i < values.length; i ++) {
+      for (var j = 0; j < values.length; j ++) {
+        if (!(i == 0 && j == 0)) {
+          me.game.add(new CharacterExplosion(
+            obj.pos.x, obj.pos.y, values[i], values[j]), obj.z
+          );
+        }
+      }
+    }
+    me.game.add(new CharacterExplosion(obj.pos.x, obj.pos.y, 0.4, 0), obj.z);
+    me.game.add(new CharacterExplosion(obj.pos.x, obj.pos.y, -0.4, 0), obj.z);
+    me.game.add(new CharacterExplosion(obj.pos.x, obj.pos.y, 0, 0.4), obj.z);
+    me.game.add(new CharacterExplosion(obj.pos.x, obj.pos.y, 0, -0.4), obj.z);
+
+    me.game.sort();
   }
 });
 

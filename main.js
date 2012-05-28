@@ -1,6 +1,6 @@
 var jsApp = {
   onload: function() {
-    if (!me.video.init('jsapp', 256, 224, true, 2.0)) {
+    if (!me.video.init('jsapp', 256, 224, true, 3.0)) {
       alert("Sorry, but your browser does not support html 5 canvas.");
          return;
     }
@@ -35,7 +35,9 @@ var jsApp = {
     me.entityPool.add("ShieldSweeper", ShieldSweeper);
     me.entityPool.add("RobotBat", RobotBat);
     me.entityPool.add("MechBot", MechBot);
-    //me.entityPool.add("x-transition", Transition);
+    me.entityPool.add("SpinningSpawnPoint", SpinningSpawnPoint);
+
+    me.entityPool.add('Gooseman', Gooseman);
 
     // Movement inputs
     me.input.bindKey(me.input.KEY.A, "left");

@@ -1,12 +1,20 @@
 // game resources
 var g_resources = [{
-  name: "mm3_8boss_shadowman",
+  name: "inside_tileset",
   type: "image",
-  src: "data/images/mm3_8boss_shadowman.png"
+  src: "data/images/inside_tileset.png"
 }, {
   name: "test_area",
   type: "tmx",
   src: "data/test_area.tmx"
+}, {
+  name: "goose_portal",
+  type: "tmx",
+  src: "data/goose_portal.tmx"
+}, {
+  name: "goose_room",
+  type: "tmx",
+  src: "data/goose_room.tmx"
 }, {
   name: "adam_animate",
   type: "image",
@@ -23,6 +31,10 @@ var g_resources = [{
   name: "one_health",
   type: "image",
   src: "data/images/one_health.png"
+}, {
+  name: "one_goose_health",
+  type: "image",
+  src: "data/images/one_goose_health.png"
 }, {
   name: "small_health",
   type: "image",
@@ -79,5 +91,82 @@ var g_resources = [{
   name: "zap-it-title",
   type: "image",
   src: "data/images/zap-it-title.png"
+}, {
+  name: "f-bomb",
+  type: "image",
+  src: "data/images/f-bomb.png"
+}, {
+  name: "fbomb-explosion",
+  type: "image",
+  src: "data/images/fbomb-explosion.png"
+}, {
+  name: "boss_music",
+  type: "audio",
+  src: "data/music/",
+  channel: 1
+}, {
+  name: "title_music",
+  type: "audio",
+  src: "data/music/",
+  channel: 1
+}, {
+  name: "beat_boss",
+  type: "audio",
+  src: "data/music/",
+  channel: 1
+}, {
+  name: "death",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "hit",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "fbomb",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 2
+}, {
+  name: "shoot",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 2
+}, {
+  name: "deflect",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 2
+}, {
+  name: "one_health",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 2
+}, {
+  name: "enemy_explosion",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "enemy_hit",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "enemy_shoot",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "teleport",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "landing",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
 }];
-

@@ -1,13 +1,13 @@
 var PlayScreen = me.ScreenObject.extend({
   init: function() {
     this.currentHealth = new HealthBar(16, 16);
-    this.currentLevel = "test_area";
+    this.currentLevel = "goose_portal";
   },
 
   onResetEvent: function(data) {
     me.levelDirector.loadLevel(this.currentLevel);
 
-    me.game.addHUD(16, 16, 8, 56);
+    me.game.addHUD(16, 16, 32, 56);
     me.game.HUD.addItem("playerHealth", this.currentHealth);
     me.game.sort();
 
@@ -31,6 +31,7 @@ var TitleScreen = me.ScreenObject.extend({
     this.isBlinking = false;
 
     me.input.bindKey(me.input.KEY.ENTER, "pause", true);
+    me.audio.playTrack('title_music');
   },
 
   update: function() {
@@ -43,6 +44,7 @@ var TitleScreen = me.ScreenObject.extend({
     }
 
     if (me.input.isKeyPressed("pause")) {
+      me.audio.play('teleport');
       me.state.change(me.state.PLAY);
       return true;
     }
@@ -52,6 +54,7 @@ var TitleScreen = me.ScreenObject.extend({
   onDestroyEvent: function() {
     this.font = null;
     me.input.unbindKey(me.input.KEY.ENTER);
+    me.audio.stopTrack();
   },
 
   draw: function(context) {
