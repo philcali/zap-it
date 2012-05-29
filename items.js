@@ -16,13 +16,20 @@ var GoodDrop = me.CollectableEntity.extend({
 
   onCollision: function(res, obj) {
     if (obj instanceof PlayerEntity) {
-      var current = me.game.HUD.getItemValue(this.target),
+      var current = this.getSource().getItemValue(this.target),
         attempt = current + this.power,
         set = attempt > this.maxValue ? this.maxValue : attempt;
 
-      me.game.HUD.setItemValue(this.target, set);
+      this.onUpgrade(set);
       me.game.remove(this);
     }
+  },
+
+  getSource: function() {
+    return me.game.HUD;
+  },
+
+  onUpgrade: function(amount) {
   },
 
   update: function() {
@@ -46,9 +53,33 @@ var GoodDrop = me.CollectableEntity.extend({
   }
 });
 
+var LifeDrop = GoodDrop.extend({
+  init: function(x, y, settings) {
+    settings.image = "one_up";
+    settings.spritewidth = 16;
+
+    this.parent(x, y, settings, 'lives', 1,
+      settings.everlasting ? true : false, 9);
+  },
+
+  getSource: function() {
+    return me.gamestat;
+  },
+
+  onUpgrade: function(amount) {
+    me.gamestat.setValue(this.target, amount);
+    // TODO: make sound
+  }
+});
+
 var HealthDrop = GoodDrop.extend({
   init: function(x, y, settings, power, everlasting) {
     this.parent(x, y, settings, 'playerHealth', power, everlasting, 28);
+  },
+
+  onUpgrade: function(amount) {
+    me.game.HUD.setItemValue(this.target, amount);
+    me.audio.play('one_health');
   }
 });
 
@@ -70,7 +101,7 @@ var LargeEnergy = HealthDrop.extend({
       spritewidth: 16
     };
 
-    this.parent(x, y, settings, 10, everlasting);
+    this.parent(x, y, settings, 8, everlasting);
   }
 });
 

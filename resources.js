@@ -20,9 +20,25 @@ var g_resources = [{
   type: "image",
   src: "data/images/adam_animate.png"
 }, {
+  name: "game_over",
+  type: "image",
+  src: "data/images/game_over.png"
+}, {
+  name: "story_screen",
+  type: "image",
+  src: "data/images/story_screen.png"
+}, {
+  name: "dialog_box",
+  type: "image",
+  src: "data/images/dialog_box.png"
+}, {
   name: "bullet",
   type: "image",
   src: "data/images/bullet.png"
+}, {
+  name: "one_up",
+  type: "image",
+  src: "data/images/one_up.png"
 }, {
   name: "health_bar",
   type: "image",

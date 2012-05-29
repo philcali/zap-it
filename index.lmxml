@@ -15,7 +15,7 @@ body {
 }
 
 #jsapp {
-  width: 512px;
+  width: 768px;
   margin: auto;
 }
         ```

@@ -23,7 +23,10 @@ var jsApp = {
   loaded: function () {
     // TODO: READY, SETTINGS, MENU
     me.state.set(me.state.PLAY, new PlayScreen());
+    me.state.set(me.state.READY, new StoryScreen());
     me.state.set(me.state.MENU, new TitleScreen());
+    me.state.set(me.state.GAMEOVER, new GameOver());
+    me.state.set(me.state.GAME_END, new GameEnd());
 
     // We do our own transitions
     me.state.setTransition(me.state.PLAY, false);
@@ -39,19 +42,7 @@ var jsApp = {
 
     me.entityPool.add('Gooseman', Gooseman);
 
-    // Movement inputs
-    me.input.bindKey(me.input.KEY.A, "left");
-    me.input.bindKey(me.input.KEY.D, "right");
-    me.input.bindKey(me.input.KEY.S, "down");
-
-    // Action inputs
-    me.input.bindKey(me.input.KEY.K, "jump", true);
-    me.input.bindKey(me.input.KEY.J, "fire", true);
-
-    // TODO: menu?
-    me.input.bindKey(me.input.KEY.ENTER, "pause", true);
-
-    me.state.change(me.state.MENU);
+    me.state.change(me.state.READY);
   }
 
 }; // jsApp

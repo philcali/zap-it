@@ -428,7 +428,7 @@ var SpinningSpawnPoint = me.InvisibleEntity.extend({
     if (this.fireCounter <= 0) {
       var spinners = me.game.getEntityByName('SpinningBot');
 
-      if (spinners < this.liveEnemies) {
+      if (spinners.length < this.liveEnemies) {
         this.doSpawn();
       }
       this.fireCounter = this.fireInterval;
@@ -906,9 +906,17 @@ var Gooseman = MegaEnemy.extend({
 
     new ExplosionFactory(this);
 
+    // Stop
+    me.input.unbindKey(me.input.KEY.A);
+    me.input.unbindKey(me.input.KEY.D);
+    me.input.unbindKey(me.input.KEY.J);
+    me.input.unbindKey(me.input.KEY.K);
+
+    var player = this.locatePlayer();
+
     me.audio.play('death', false, function() {
       me.audio.play('beat_boss', false, function() {
-        // Fade to black
+        player.doLeave();
       });
     })
   },
