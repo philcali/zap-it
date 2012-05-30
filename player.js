@@ -103,7 +103,7 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.addAnimation('leaving', [19, 18]);
 
     // Adjust gravity and velocity for jump height and speed
-    this.setVelocity(1.4, 7.5);
+    this.setVelocity(1.6, 7.5);
     this.animationspeed = me.sys.fps / 9;
     this.gravity = 0.45;
     this.faceLeft = false;
@@ -134,6 +134,8 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.leaving = false;
     this.leavingStarted = false;
 
+    this.springing = false;
+
     me.game.viewport.follow(this.pos, me.game.viewport.AXIS.HORIZONTAL);
     // Conditionally set this for right only
     // me.game.viewport.setDeadzone(-50, 0);
@@ -162,7 +164,9 @@ var PlayerEntity = me.ObjectEntity.extend({
   },
 
   doDamage: function(value) {
-    this.breakSlide();
+    if (this.sliding) {
+      this.breakSlide();
+    }
 
     this.damaged = true;
     this.vel.x = this.vel.x * -0.75;
@@ -174,8 +178,8 @@ var PlayerEntity = me.ObjectEntity.extend({
     }
 
     // Knock him down!
-    if (this.vel.y > 0 && !this.falling) {
-      this.vel.y = this.vel.y * -1;
+    if (this.vel.y < 0 && this.jumping) {
+      this.vel.y = 0;
     }
 
     this.flicker(50);
@@ -191,7 +195,9 @@ var PlayerEntity = me.ObjectEntity.extend({
       return;
     }
 
-    this.breakSlide();
+    if (this.sliding) {
+      this.breakSlide();
+    }
     this.firing = true;
     this.fireCounter = this.fireDelay;
 
@@ -218,19 +224,29 @@ var PlayerEntity = me.ObjectEntity.extend({
     }
   },
 
+  doSpring: function() {
+    if (this.sliding) this.breakSlide();
+
+    this.setVelocity(1.6, 10)
+    this.forceJump();
+    this.springing = true;
+  },
+
   doSlide: function() {
     this.sliding = true;
     this.slideCounter = this.slideDuration;
     this.setCurrentAnimation('slide');
-    this.setVelocity(2.6, 7);
+    this.setVelocity(2.6, 7.5);
   },
 
   breakSlide: function() {
     this.sliding = false;
-    this.setVelocity(1.6, 7);
+    this.setVelocity(1.6, 7.5);
   },
 
   doDeath: function() {
+    this.alive = false;
+
     me.gamestat.updateValue('lives', -1);
     me.game.remove(this);
 
@@ -243,8 +259,6 @@ var PlayerEntity = me.ObjectEntity.extend({
 
     me.game.viewport.fadeIn("#dddddd", 1700, function() {
       var lives = me.gamestat.getItemValue('lives');
-
-      me.state.set(me.state.PLAY, new PlayScreen());
 
       if (lives >= 0) {
         me.state.change(me.state.PLAY);
@@ -297,6 +311,7 @@ var PlayerEntity = me.ObjectEntity.extend({
 
     if (this.damaged) {
       this.updateMovement();
+
       this.parent(this);
       this.damageCounter --;
 
@@ -354,13 +369,12 @@ var PlayerEntity = me.ObjectEntity.extend({
     }
 
     var general = this.updateMovement();
-    var res = me.game.collide(this);
 
     this.parent(this);
 
-    if (res) {
-      if (!this.isFlickering() && res.obj.type == me.game.ENEMY_OBJECT) {
-        this.doDamage(res.obj.power);
+    if (general) {
+      if (!this.isFlickering() && general.yprop.isBreakable) {
+        this.doDeath();
       }
     }
 
@@ -370,6 +384,19 @@ var PlayerEntity = me.ObjectEntity.extend({
        )) {
       this.setCurrentAnimation('stand');
       me.audio.play('landing');
+
+      if (this.springing) {
+        this.springing = false;
+        this.setVelocity(1.6, 7.5);
+      }
+    }
+
+    var res = me.game.collide(this);
+
+    if (res) {
+      if (!this.isFlickering() && res.obj.type == me.game.ENEMY_OBJECT) {
+        this.doDamage(res.obj.power);
+      }
     }
 
     if (this.firing) {

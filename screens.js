@@ -1,14 +1,12 @@
 var PlayScreen = me.ScreenObject.extend({
-  init: function() {
-    this.currentHealth = new HealthBar(16, 16);
-    this.currentLevel = "test_area";
-  },
-
   onResetEvent: function(data) {
-    me.levelDirector.loadLevel(this.currentLevel);
+    var currentLevel = me.gamestat.getItemValue('checkpoint');
+    var currentHealth = new HealthBar(16, 16);
+
+    me.levelDirector.loadLevel(currentLevel);
 
     me.game.addHUD(16, 16, 32, 56);
-    me.game.HUD.addItem("playerHealth", this.currentHealth);
+    me.game.HUD.addItem("playerHealth", currentHealth);
     me.game.sort();
 
     me.game.viewport.fadeOut("#000000", 250);
@@ -127,6 +125,8 @@ var StoryScreen = me.ScreenObject.extend({
     me.input.bindKey(me.input.KEY.K, "jump", true);
     me.input.bindKey(me.input.KEY.J, "fire", true);
 
+    // TODO: change this
+    me.gamestat.add('checkpoint', 'outside_01');
   },
 
   init: function() {

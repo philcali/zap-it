@@ -1,3 +1,172 @@
+var Spring = me.ObjectEntity.extend({
+  init: function(x, y, settings) {
+    settings.image = "spring";
+    settings.spritewidth = 13;
+    settings.spriteheight = 17;
+
+    this.parent(x, y, settings);
+
+    this.updateColRect(0, 13, 13, 4);
+
+    this.addAnimation('resting', [3]);
+    this.addAnimation('spring', [0, 1, 2]);
+
+    this.setCurrentAnimation('resting');
+
+    this.springing = false;
+    this.collidable = true;
+  },
+
+  onCollision: function(res, player) {
+    if (player instanceof PlayerEntity) {
+      this.doSpring(player);
+    }
+  },
+
+  doSpring: function(player) {
+    this.springing = true;
+    player.doSpring();
+
+    this.setCurrentAnimation('spring', function() {
+      this.springing = false;
+      this.setCurrentAnimation('resting');
+    });
+  },
+
+  update: function() {
+    if (!me.game.viewport.isVisible(this)) {
+      return false;
+    }
+
+    this.parent(this);
+
+    if (this.springing) {
+      return true;
+    }
+
+    return false;
+  }
+});
+
+var Platform = me.ObjectEntity.extend({
+  init: function(x, y, settings) {
+    settings.image = 'vanishing_platform';
+    settings.spritewidth = 16;
+    settings.spriteheight = 24;
+
+    this.parent(x, y + 8, settings);
+
+    this.tileX = Math.ceil(x) / 16;
+    this.tileY = Math.ceil(y) / 16;
+
+    this.seqName = settings.sequence;
+    this.seqNumber = settings.number;
+
+    this.updateColRect(0, 0, 16, 16);
+
+    var layerX = Math.ceil(this.tileX * 16);
+    var layerY = Math.ceil(this.tileY * 16);
+
+    this.solidType = me.game.collisionMap.getTileId(layerX, layerY);
+
+    me.game.collisionMap.clearTile(this.tileX, this.tileY);
+    me.game.collisionMap.clearTile(this.tileX + 1, this.tileY);
+
+    this.addAnimation('starting', [0]);
+    this.addAnimation('resting', [5]);
+
+    this.addAnimation('appearing', [1, 2, 3, 4]);
+    this.vanished = true;
+
+    this.vanishDelay = this.animationspeed * 20;
+    this.vanishCounter = this.vanishDelay;
+
+    this.currentNumber = 0;
+    this.maxNumber = 0;
+
+    this.vanishing = false;
+    this.appearing = false;
+
+    this.siblings = [];
+  },
+
+  doAppear: function() {
+    this.vanished = false;
+    this.appearing = true;
+    this.setCurrentAnimation('starting', function() {
+      this.appearing = false;
+
+      me.game.collisionMap.setTile(this.tileX, this.tileY, this.solidType);
+      me.game.collisionMap.setTile(this.tileX + 1, this.tileY, this.solidType);
+      this.setCurrentAnimation('appearing', 'resting');
+    });
+  },
+
+  doVanish: function() {
+    this.vanishCounter = this.vanishDelay;
+    var index = this.currentNumber;
+    for (var i = 0; i < this.siblings.length; i ++) {
+      this.siblings[i].onNumber(index);
+    }
+
+    this.vanishing = true;
+    this.setCurrentAnimation('starting', function() {
+      this.vanishing = false;
+      this.vanished = true;
+      me.game.collisionMap.clearTile(this.tileX, this.tileY);
+      me.game.collisionMap.clearTile(this.tileX + 1, this.tileY);
+    });
+  },
+
+  onNumber: function(index) {
+    this.currentNumber = index == this.maxNumber ? 0 : index + 1;
+  },
+
+  draw: function(context) {
+    if (this.vanished) {
+      return;
+    }
+
+    this.parent(context);
+  },
+
+  update: function() {
+    if (this.siblings.length == 0) {
+      var platforms = me.game.getEntityByName('Platform');
+
+      for (var i = 0; i < platforms.length; i ++) {
+        if (platforms[i].seqName == this.seqName) {
+          this.maxNumber = Math.max(this.maxNumber, platforms[i].seqNumber);
+          this.siblings.push(platforms[i]);
+        }
+      }
+    }
+
+    if (!me.game.viewport.isVisible(this)) {
+      return false;
+    }
+
+    if (this.vanishing || this.appearing) {
+      this.parent(this);
+    }
+
+    if (this.currentNumber != this.seqNumber) {
+      return true;
+    }
+
+    if (this.vanished) {
+      this.doAppear();
+    }
+
+    this.vanishCounter --;
+    if (this.vanishCounter <= 0 && !this.vanished) {
+      this.doVanish();
+    }
+
+    return true;
+  }
+});
+
 var HealthBar = me.HUD_Item.extend({
   init: function(x, y) {
     this.parent(x, y);
@@ -105,19 +274,50 @@ var ExplosionFactory = Object.extend({
   }
 });
 
-var Transition = me.InvisibleEntity.extend({
+var Transition = me.LevelEntity.extend({
   init: function(x, y, settings) {
     this.parent(x, y, settings);
   },
 
+  onPlayerHit: function(player) {
+    this.goTo();
+  },
+
   onCollision: function(res, obj) {
     if (obj instanceof PlayerEntity) {
-      var cur = me.game.viewport.pos;
-      me.game.viewport.move(cur.x + me.game.viewport.getWidth() + 16, cur.y);
-      obj.pos.set(obj.pos.x + 44, obj.pos.y);
-
-      me.game.remove(this);
+      this.onPlayerHit(obj);
     }
+  }
+});
+
+var BossDoor = Transition.extend({
+  onPlayerHit: function(player) {
+    // Initially lock player controls
+    me.input.unbindKey(me.input.KEY.A);
+    me.input.unbindKey(me.input.KEY.D);
+    me.input.unbindKey(me.input.KEY.J);
+    me.input.unbindKey(me.input.KEY.K);
+
+    this.parent(player);
+
+    var userAgent = me.sys.ua;
+
+    if (!(userAgent.match(/mac/) && userAgent.match(/chrome/))) {
+      me.audio.playTrack('boss_music');
+    }
+  }
+});
+
+var Checkpoint = Transition.extend({
+  init: function(x, y, settings) {
+    this.parent(x, y, settings);
+    this.checkpoint = settings.checkpoint;
+  },
+
+  onPlayerHit: function(player) {
+    var checkpoint = this.checkpoint || (this.nextlevel + "_checkpoint");
+    me.gamestat.setValue('checkpoint', checkpoint);
+    this.parent(player);
   }
 });
 

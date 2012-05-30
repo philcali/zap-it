@@ -49,6 +49,12 @@ var MegaEnemy = Baddy.extend({
     this.parent(x, y, settings, power);
 
     this.health = health;
+    this.aerial = false;
+  },
+
+  locatePlayer: function() {
+    var players = me.game.getEntityByName('mainPlayer');
+    return players.length >= 1 ? players[0] : null;
   },
 
   setHealth: function(health) {
@@ -61,13 +67,17 @@ var MegaEnemy = Baddy.extend({
 
   checkDrop: function() {
     var chances = Math.random();
-    if (chances > 0.75) {
+    if (chances > 0.80) {
       return false;
     }
 
-    if (chances >= 0 && chances < 0.40) {
-      return me.game.HUD.getItemValue('playerHealth') < 28;
+    if (chances >= 0 && chances < 0.15 && me.dropmanager.isHealthDropValid()) {
+      return me.dropmanager.getHealthChild();
+    } else if (chances >= 0.70 && chances <= 0.71 && me.dropmanager.isLifeDropValid()) {
+      return 'life';
     }
+
+    return false;
   },
 
   performDeflect: function(res, bullet) {
@@ -84,15 +94,11 @@ var MegaEnemy = Baddy.extend({
     me.audio.play('deflect');
   },
 
-  performDrop: function() {
-    var chances = Math.random(),
-      x = this.pos.x,
-      y = this.pos.y,
-      drop = chances < 0.60 ?
-        new SmallEnergy(x, y, false) :
-        new LargeEnergy(x, y, false);
+  performDrop: function(droptype) {
+    var settings = { everlasting: false },
+      drop = me.dropmanager.types[droptype];
 
-    me.game.add(drop, this.z);
+    me.game.add(new drop(this.pos.x, this.pos.y, settings), this.z);
   },
 
   doDeath: function() {
@@ -102,9 +108,12 @@ var MegaEnemy = Baddy.extend({
 
     me.game.add(new EnemyExplosion(cur.x + 10, cur.y + 5), this.z);
 
-    if (this.checkDrop()) {
-      this.performDrop();
+    var droptype = this.checkDrop();
+
+    if (me.dropmanager.isValid(droptype)) {
+      this.performDrop(droptype);
     }
+
     me.game.sort();
     me.audio.play('enemy_explosion');
 
@@ -160,12 +169,21 @@ var EnemyBullet = Baddy.extend({
 
     this.doWalk(this.flyLeft);
 
-    this.computeVelocity(this.vel);
-    this.pos.add(this.vel);
+    if (this.arching) {
+      var res = this.updateMovement();
+
+      if (res && res.y > 0) {
+        this.vel.y == 0;
+      }
+
+    } else {
+      this.computeVelocity(this.vel);
+      this.pos.add(this.vel);
+    }
 
     me.game.collide(this);
 
-    if (!me.game.viewport.isVisible(this)) {
+    if (!me.game.viewport.isVisible(this) || (this.arching && this.vel.y == 0)) {
       this.alive = false;
       me.game.remove(this);
       return false;
@@ -313,6 +331,9 @@ var FollowingEnemy = MegaEnemy.extend({
     this.gatheredFocus = false;
     this.lineOfSight = 100;
     this.onladder = true;
+    this.aerial = true;
+
+    this.mainPlayer = null;
   },
 
   onFocus: function() {
@@ -329,15 +350,17 @@ var FollowingEnemy = MegaEnemy.extend({
       return false;
     }
 
-    var player = me.game.getEntityByName('mainPlayer');
+    if (!this.mainPlayer) {
+      this.mainPlayer = this.locatePlayer();
+    }
 
-    if (player.length == 0) {
+    if (!this.mainPlayer || !this.mainPlayer.alive) {
       this.parent(this);
       return false;
     }
 
     if (!this.gatheredFocus) {
-      if (this.distanceTo(player[0]) <= this.lineOfSight) {
+      if (this.distanceTo(this.mainPlayer) <= this.lineOfSight) {
         this.gatheredFocus = true;
         this.onFocus();
       } else {
@@ -345,7 +368,7 @@ var FollowingEnemy = MegaEnemy.extend({
       }
     }
 
-    this.doMoveTowards(player[0]);
+    this.doMoveTowards(this.mainPlayer);
 
     this.computeVelocity(this.vel);
     this.pos.add(this.vel);
@@ -435,6 +458,126 @@ var SpinningSpawnPoint = me.InvisibleEntity.extend({
     }
 
     return false;
+  }
+});
+
+var WallTurret = MegaEnemy.extend({
+  init: function(x, y, settings) {
+    settings.image = 'wall_turret';
+    settings.spritewidth = 32;
+    settings.spriteheight = 36;
+
+    this.parent(x, y, settings, 3, 2);
+
+    this.faceLeft = settings.faceLeft;
+    this.rapid = settings.rapid;
+
+    this.addAnimation('down', [2]);
+    this.addAnimation('down-shoot', [0, 1, 2]);
+
+    this.addAnimation('up', [5]);
+    this.addAnimation('up-shoot', [3, 4, 5]);
+
+    this.addAnimation('straight', [8]);
+    this.addAnimation('straight-shoot', [6, 7, 8]);
+
+    this.fireDelay = this.animationspeed * 15;
+    this.fireCounter = this.fireDelay;
+
+    this.currentDirection = 'up';
+
+    this.flipX(this.faceLeft);
+
+    this.aerial = true;
+
+    this.mainPlayer = null;
+  },
+
+  doFire: function() {
+    this.firing = true;
+    this.fireCounter = this.fireDelay;
+
+    me.audio.play('enemy_shoot');
+
+    if (this.currentDirection == 'up') {
+      var adjustY = 0;
+    } else if (this.currentDirection == 'down') {
+      var adjustY = 32;
+    } else {
+      var adjustY = 16;
+    }
+
+    var adjustX = this.faceLeft ? 0 : 32;
+
+    var bullet = new EnemyBullet(
+      this.pos.x + adjustX,
+      this.pos.y + adjustY,
+      this.faceLeft
+    );
+
+    var distance = this.distanceTo(this.mainPlayer);
+    var mult = this.mainPlayer.pos.y < this.pos.y ? -1 : 1;
+
+    bullet.arching = true;
+
+    if (this.currentDirection == 'up') {
+      bullet.setVelocity(4, 8);
+      bullet.gravity = 0.8;
+      bullet.forceJump();
+    } else if (this.currentDirection == 'straight') {
+      bullet.setVelocity(4, 2);
+    } else {
+      bullet.setVelocity(4, 4);
+    }
+
+    me.game.add(bullet, this.z);
+    me.game.sort();
+
+    this.setCurrentAnimation(this.currentDirection + '-shoot', function() {
+      this.firing = false;
+      this.setCurrentAnimation(this.currentDirection);
+    });
+  },
+
+  update: function() {
+    if (!me.game.viewport.isVisible(this)) {
+      return false;
+    }
+
+    if (!this.mainPlayer) {
+      this.mainPlayer = this.locatePlayer();
+    }
+
+    this.parent(this);
+
+    if (this.firing) {
+      return true;
+    }
+
+    if (!this.mainPlayer.alive) {
+      return false;
+    }
+
+    var distance = this.distanceTo(this.mainPlayer);
+    var vertical = Math.abs(this.pos.y - this.mainPlayer.pos.y);
+    var horizontal = Math.abs(this.pos.x - this.mainPlayer.pos.x);
+
+    if (distance > vertical) {
+      this.currentDirection = 'up';
+    } else if (this.mainPlayer.pos.y >= this.pos.y && distance > 100) {
+      this.currentDirection = 'straight';
+    } else {
+      this.currentDirection = 'down';
+    }
+
+    this.setCurrentAnimation(this.currentDirection);
+
+    this.fireCounter --;
+    if (this.fireCounter <= 0) {
+      this.doFire();
+    }
+
+    return true;
   }
 });
 
@@ -595,8 +738,6 @@ var ShieldBot = MegaEnemy.extend({
 
     this.flipX(this.faceLeft);
     this.updateMovement();
-
-    me.game.collide(this);
 
     if (this.atRest <= 0) {
       this.firing = true;
@@ -781,22 +922,6 @@ var Gooseman = MegaEnemy.extend({
 
     this.urgent = false;
     this.urgentHealth = this.health * 0.25;
-
-    me.audio.playTrack("boss_music");
-
-    // Initially lock player controls
-    me.input.unbindKey(me.input.KEY.A);
-    me.input.unbindKey(me.input.KEY.D);
-    me.input.unbindKey(me.input.KEY.J);
-    me.input.unbindKey(me.input.KEY.K);
-  },
-
-  locatePlayer: function() {
-    var player = me.game.getEntityByName('mainPlayer');
-    return (player.length >= 1) ? player[0] : null;
-  },
-
-  doReadyLanded: function() {
     this.readyLanded = true;
     this.setCurrentAnimation('bang-chest', function() {
       this.setCurrentAnimation('release', function() {
@@ -970,15 +1095,17 @@ var Gooseman = MegaEnemy.extend({
     }
 
     if (!this.performing) {
-      var player = this.locatePlayer();
+      if (!this.mainPlayer) {
+        this.mainPlayer = this.locatePlayer();
+      }
 
-      if (player) {
-        this.faceLeft = player.pos.x < this.pos.x;
+      if (this.mainPlayer.alive) {
+        this.faceLeft = this.mainPlayer.pos.x < this.pos.x;
 
         if (this.performingState == 'homing') {
-          this.doFBomb(player);
+          this.doFBomb(this.mainPlayer);
         } else {
-          this.doHomingJump(player);
+          this.doHomingJump(this.mainPlayer);
         }
       }
     }

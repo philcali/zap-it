@@ -32,18 +32,25 @@ var jsApp = {
     me.state.setTransition(me.state.PLAY, false);
 
     me.entityPool.add("mainPlayer", PlayerEntity);
+    me.entityPool.add('WallTurret', WallTurret);
     me.entityPool.add("SpawningPoint", SpawningPoint);
+    me.entityPool.add("Transition", Transition);
+    me.entityPool.add("Checkpoint", Checkpoint);
     me.entityPool.add("RobotCar", RobotCar);
     me.entityPool.add("ShieldBot", ShieldBot);
     me.entityPool.add("ShieldSweeper", ShieldSweeper);
     me.entityPool.add("RobotBat", RobotBat);
     me.entityPool.add("MechBot", MechBot);
     me.entityPool.add("SpinningSpawnPoint", SpinningSpawnPoint);
+    me.entityPool.add("Spring", Spring);
+
+    me.entityPool.add("BossDoor", BossDoor);
+    me.entityPool.add("Platform", Platform);
 
     me.entityPool.add('Gooseman', Gooseman);
 
     me.state.change(me.state.READY);
-  }
+  },
 
 }; // jsApp
 

@@ -4,13 +4,21 @@ var g_resources = [{
   type: "image",
   src: "data/images/inside_tileset.png"
 }, {
-  name: "test_area",
+  name: "outside_tileset",
+  type: "image",
+  src: "data/images/outside_tileset.png"
+}, {
+  name: "outside_01",
   type: "tmx",
-  src: "data/test_area.tmx"
+  src: "data/outside_01.tmx"
 }, {
   name: "goose_portal",
   type: "tmx",
   src: "data/goose_portal.tmx"
+}, {
+  name: "goose_portal_checkpoint",
+  type: "tmx",
+  src: "data/goose_portal_checkpoint.tmx"
 }, {
   name: "goose_room",
   type: "tmx",
@@ -68,6 +76,10 @@ var g_resources = [{
   type: "image",
   src: "data/images/enemy_die.png"
 }, {
+  name: "platform",
+  type: "image",
+  src: "data/images/platform.png"
+}, {
   name: "gooseman",
   type: "image",
   src: "data/images/gooseman.png"
@@ -88,6 +100,14 @@ var g_resources = [{
   type: "image",
   src: "data/images/sweeper.png"
 }, {
+  name: "vanishing_platform",
+  type: "image",
+  src: "data/images/vanishing_platform.png"
+}, {
+  name: "spring",
+  type: "image",
+  src: "data/images/spring.png"
+}, {
   name: "robot_bat",
   type: "image",
   src: "data/images/robot_bat.png"
@@ -99,6 +119,10 @@ var g_resources = [{
   name: "spinning_bot",
   type: "image",
   src: "data/images/spinning_bot.png"
+}, {
+  name: "wall_turret",
+  type: "image",
+  src: "data/images/wall_turret.png"
 }, {
   name: "fontx8",
   type: "image",
@@ -167,6 +191,11 @@ var g_resources = [{
   channel: 1
 }, {
   name: "enemy_hit",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "life",
   type: "audio",
   src: "data/sfx/",
   channel: 1

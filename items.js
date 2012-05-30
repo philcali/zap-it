@@ -1,5 +1,5 @@
 var GoodDrop = me.CollectableEntity.extend({
-  init: function(x, y, settings, target, power, everlasting, maxValue) {
+  init: function(x, y, settings, target, power, maxValue) {
 
     this.parent(x, y, settings);
 
@@ -8,7 +8,7 @@ var GoodDrop = me.CollectableEntity.extend({
 
     this.setVelocity(0, 3);
 
-    this.everlasting = everlasting;
+    this.everlasting = settings.everlasting;
     this.target = target;
     this.power = power;
     this.maxValue = maxValue;
@@ -58,8 +58,7 @@ var LifeDrop = GoodDrop.extend({
     settings.image = "one_up";
     settings.spritewidth = 16;
 
-    this.parent(x, y, settings, 'lives', 1,
-      settings.everlasting ? true : false, 9);
+    this.parent(x, y, settings, 'lives', 1, 9);
   },
 
   getSource: function() {
@@ -68,13 +67,14 @@ var LifeDrop = GoodDrop.extend({
 
   onUpgrade: function(amount) {
     me.gamestat.setValue(this.target, amount);
-    // TODO: make sound
+    me.audo.play('life');
   }
 });
 
+
 var HealthDrop = GoodDrop.extend({
-  init: function(x, y, settings, power, everlasting) {
-    this.parent(x, y, settings, 'playerHealth', power, everlasting, 28);
+  init: function(x, y, settings, power) {
+    this.parent(x, y, settings, 'playerHealth', power, 28);
   },
 
   onUpgrade: function(amount) {
@@ -84,24 +84,59 @@ var HealthDrop = GoodDrop.extend({
 });
 
 var SmallEnergy = HealthDrop.extend({
-  init: function(x, y, everlasting) {
-    var settings = {
-      image: 'small_health',
-      spritewidth: 8
-    };
+  init: function(x, y, settings) {
+    settings.image = 'small_health';
+    settings.spritewidth = 8;
 
-    this.parent(x, y, settings, 2, everlasting);
+    this.parent(x, y, settings, 2);
   }
 });
 
 var LargeEnergy = HealthDrop.extend({
-  init: function(x, y, everlasting) {
-    var settings = {
-      image: 'large_health',
-      spritewidth: 16
-    };
+  init: function(x, y, settings) {
+    settings.image = 'large_health';
+    settings.spritewidth = 16;
 
-    this.parent(x, y, settings, 8, everlasting);
+    this.parent(x, y, settings, 8);
   }
 });
 
+(function($) {
+  me.dropmanager = (function() {
+    var singleton = {
+      types: {
+        smallEnergy: SmallEnergy,
+        largeEnergy: LargeEnergy,
+        life: LifeDrop
+      },
+
+      isHealthDropValid: function() {
+        return me.game.HUD.getItemValue('playerHealth') < 28;
+      },
+
+      getHealthChild: function() {
+        var chances = Math.random();
+
+        return chances < 0.60 ? 'smallEnergy' : 'largeEnergy';
+      },
+
+      isLifeDropValid: function() {
+        return me.gamestat.getItemValue('lives') < 9;
+      },
+
+      isValid: function(type) {
+        switch (type) {
+          case 'smallEnergy':
+          case 'largeEnergy':
+          return singleton.isHealthDropValid();
+          case 'life':
+          return singleton.isLifeDropValid();
+          default:
+          return false;
+        }
+      }
+    };
+
+    return singleton;
+  })();
+})(window);
