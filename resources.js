@@ -192,6 +192,10 @@ var g_resources = [{
   type: "image",
   src: "data/images/wall_turret.png"
 }, {
+  name: "selector",
+  type: "image",
+  src: "data/images/selector.png"
+}, {
   name: "fontx8",
   type: "image",
   src: "data/images/fontx8.png"
