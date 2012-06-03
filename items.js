@@ -67,7 +67,7 @@ var LifeDrop = GoodDrop.extend({
 
   onUpgrade: function(amount) {
     me.gamestat.setValue(this.target, amount);
-    me.audo.play('life');
+    me.audio.play('life');
   }
 });
 

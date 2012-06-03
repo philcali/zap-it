@@ -17,11 +17,10 @@ var jsApp = {
     // load everything & display a loading screen
     me.state.change(me.state.LOADING);
 
-    // me.debug.renderHitBox = true;
+    //me.debug.renderHitBox = true;
   },
 
   loaded: function () {
-    // TODO: READY, SETTINGS, MENU
     me.state.set(me.state.PLAY, new PlayScreen());
     me.state.set(me.state.READY, new StoryScreen());
     me.state.set(me.state.MENU, new TitleScreen());
@@ -41,17 +40,22 @@ var jsApp = {
     me.entityPool.add("ShieldSweeper", ShieldSweeper);
     me.entityPool.add("RobotBat", RobotBat);
     me.entityPool.add("MechBot", MechBot);
+    me.entityPool.add("Cazbot", Cazbot);
     me.entityPool.add("SpinningSpawnPoint", SpinningSpawnPoint);
-    me.entityPool.add("Spring", Spring);
 
+    me.entityPool.add("LifeDrop", LifeDrop);
+    me.entityPool.add("SmallEnergy", SmallEnergy);
+    me.entityPool.add("LargeEnergy", LargeEnergy);
+
+    me.entityPool.add("Spring", Spring);
     me.entityPool.add("BossDoor", BossDoor);
     me.entityPool.add("Platform", Platform);
+    me.entityPool.add("WaterLine", WaterLine);
 
     me.entityPool.add('Gooseman', Gooseman);
 
     me.state.change(me.state.READY);
-  },
-
+  }
 }; // jsApp
 
 window.onReady(function() {

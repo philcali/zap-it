@@ -12,13 +12,73 @@ var g_resources = [{
   type: "tmx",
   src: "data/outside_01.tmx"
 }, {
-  name: "goose_portal",
+  name: "outside_02",
   type: "tmx",
-  src: "data/goose_portal.tmx"
+  src: "data/outside_02.tmx"
 }, {
-  name: "goose_portal_checkpoint",
+  name: "outside_03",
   type: "tmx",
-  src: "data/goose_portal_checkpoint.tmx"
+  src: "data/outside_03.tmx"
+}, {
+  name: "outside_04",
+  type: "tmx",
+  src: "data/outside_04.tmx"
+}, {
+  name: "outside_05",
+  type: "tmx",
+  src: "data/outside_05.tmx"
+}, {
+  name: "outside_06",
+  type: "tmx",
+  src: "data/outside_06.tmx"
+}, {
+  name: "outside_caz_portal",
+  type: "tmx",
+  src: "data/outside_caz_portal.tmx"
+}, {
+  name: "outside_caz_portal_checkpoint",
+  type: "tmx",
+  src: "data/outside_caz_portal_checkpoint.tmx"
+}, {
+  name: "caz_room",
+  type: "tmx",
+  src: "data/caz_room.tmx"
+}, {
+  name: "inside_start",
+  type: "tmx",
+  src: "data/inside_start.tmx"
+}, {
+  name: "inside_01",
+  type: "tmx",
+  src: "data/inside_01.tmx"
+}, {
+  name: "inside_02",
+  type: "tmx",
+  src: "data/inside_02.tmx"
+}, {
+  name: "inside_03",
+  type: "tmx",
+  src: "data/inside_03.tmx"
+}, {
+  name: "inside_04",
+  type: "tmx",
+  src: "data/inside_04.tmx"
+}, {
+  name: "inside_05",
+  type: "tmx",
+  src: "data/inside_05.tmx"
+}, {
+  name: "inside_start_checkpoint",
+  type: "tmx",
+  src: "data/inside_start_checkpoint.tmx"
+}, {
+  name: "inside_goose_portal",
+  type: "tmx",
+  src: "data/inside_goose_portal.tmx"
+}, {
+  name: "inside_goose_portal_checkpoint",
+  type: "tmx",
+  src: "data/inside_goose_portal_checkpoint.tmx"
 }, {
   name: "goose_room",
   type: "tmx",
@@ -68,6 +128,10 @@ var g_resources = [{
   type: "image",
   src: "data/images/large_health.png"
 }, {
+  name: "cazbot",
+  type: "image",
+  src: "data/images/cazbot.png"
+}, {
   name: "robo_car",
   type: "image",
   src: "data/images/robo_car.png"
@@ -87,6 +151,10 @@ var g_resources = [{
   name: "hit",
   type: "image",
   src: "data/images/hit.png"
+}, {
+  name: "splash",
+  type: "image",
+  src: "data/images/splash.png"
 }, {
   name: "other_bullet",
   type: "image",
@@ -145,12 +213,27 @@ var g_resources = [{
   src: "data/music/",
   channel: 1
 }, {
+  name: "inside_music",
+  type: "audio",
+  src: "data/music/",
+  channel: 1
+}, {
   name: "title_music",
   type: "audio",
   src: "data/music/",
   channel: 1
 }, {
+  name: "game_over",
+  type: "audio",
+  src: "data/music/",
+  channel: 1
+}, {
   name: "beat_boss",
+  type: "audio",
+  src: "data/music/",
+  channel: 1
+}, {
+  name: "outside_music",
   type: "audio",
   src: "data/music/",
   channel: 1
@@ -201,6 +284,21 @@ var g_resources = [{
   channel: 1
 }, {
   name: "enemy_shoot",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "splash",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "platform",
+  type: "audio",
+  src: "data/sfx/",
+  channel: 1
+}, {
+  name: "spring",
   type: "audio",
   src: "data/sfx/",
   channel: 1

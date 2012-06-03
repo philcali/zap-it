@@ -16,7 +16,7 @@ var ReadyDialog = me.ObjectEntity.extend({
   },
 
   draw: function(context) {
-    //this.parent(context);
+    this.parent(context);
 
     if (!this.isBlinking) {
       this.font.draw(context, "READY", 150, 85);
@@ -52,6 +52,7 @@ var SpawningPoint = me.InvisibleEntity.extend({
     this.dialog = new ReadyDialog(this.delay);
 
     me.game.add(this.dialog, this.z);
+    me.game.sort();
   },
 
   update: function() {
@@ -78,6 +79,8 @@ var PlayerEntity = me.ObjectEntity.extend({
     settings.spriteheight = 30;
 
     this.parent(x, y, settings);
+
+    this.vertical = settings.vertical;
 
     this.addAnimation('walk', [3, 4, 5, 6]);
 
@@ -136,9 +139,30 @@ var PlayerEntity = me.ObjectEntity.extend({
 
     this.springing = false;
 
-    me.game.viewport.follow(this.pos, me.game.viewport.AXIS.HORIZONTAL);
-    // Conditionally set this for right only
-    // me.game.viewport.setDeadzone(-50, 0);
+    this.colNeedsUpdate = true;
+    this.submerged = false;
+
+    this.canFallDeath = true;
+
+    var axis = this.vertical ?
+      me.game.viewport.AXIS.VERTICAL : me.game.viewport.AXIS.HORIZONTAL;
+
+    me.game.viewport.follow(this.pos, axis);
+  },
+
+  doSubmerge: function() {
+    this.gravity = 0.27;
+    this.submerged = true;
+  },
+
+  doEmerge: function() {
+    this.gravity = 0.45;
+    this.submerged = false;
+  },
+
+  doSplash: function() {
+    me.game.add(new Splash(this.pos.x, this.pos.y), this.z + 1);
+    me.game.sort();
   },
 
   doSpawn: function(toPos) {
@@ -157,9 +181,14 @@ var PlayerEntity = me.ObjectEntity.extend({
   },
 
   doWalk: function(left) {
-    if (this.sliding && this.faceLeft && !left) {
+    var directionUpdated =
+      (this.faceLeft && !left) ||
+      (!this.faceLeft && left);
+
+    if (this.sliding && directionUpdated) {
       this.breakSlide();
     }
+
     this.parent(left);
   },
 
@@ -211,8 +240,9 @@ var PlayerEntity = me.ObjectEntity.extend({
   },
 
   doStride: function(left) {
-    this.faceLeft = left;
     this.doWalk(this.faceLeft);
+    this.faceLeft = left;
+
     if (this.isCurrentAnimation('walk')) {
       return;
     }
@@ -224,10 +254,16 @@ var PlayerEntity = me.ObjectEntity.extend({
     }
   },
 
+  doJump: function() {
+    this.colNeedsUpdate = true;
+    this.parent();
+  },
+
   doSpring: function() {
     if (this.sliding) this.breakSlide();
 
-    this.setVelocity(1.6, 10)
+    this.setVelocity(2.0, 9);
+    this.gravity = 0.34;
     this.forceJump();
     this.springing = true;
   },
@@ -237,11 +273,26 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.slideCounter = this.slideDuration;
     this.setCurrentAnimation('slide');
     this.setVelocity(2.6, 7.5);
+    this.colNeedsUpdate = true;
+  },
+
+  doLanding: function() {
+    this.setCurrentAnimation('stand');
+    me.audio.play('landing');
+
+    if (this.springing) {
+      this.springing = false;
+      this.setVelocity(1.6, 7.5);
+      this.gravity = 0.45;
+    }
+
+    this.colNeedsUpdate = true;
   },
 
   breakSlide: function() {
     this.sliding = false;
     this.setVelocity(1.6, 7.5);
+    this.colNeedsUpdate = true;
   },
 
   doDeath: function() {
@@ -358,14 +409,24 @@ var PlayerEntity = me.ObjectEntity.extend({
     if (this.falling || this.jumping) {
       if (this.sliding) this.breakSlide();
 
-      this.updateColRect(2, 22, 0, 30);
+      if (this.colNeedsUpdate) {
+        this.colNeedsUpdate = false;
+        var adjust = this.faceLeft ? 5 : 0;
+        this.updateColRect(2 + adjust, 22, 3, 27);
+      }
+
       this.firing ?
         this.setCurrentAnimation('jump-shot') :
         this.setCurrentAnimation('jump');
     } else if (this.sliding) {
-      this.updateColRect(2, 28, 14, 16);
-    } else {
-      this.updateColRect(2, 22, 6, 24);
+      if (this.colNeedsUpdate) {
+        this.colNeedsUpdate = false;
+        this.updateColRect(2, 28, 14, 16);
+      }
+    } else if (this.colNeedsUpdate) {
+      this.colNeedsUpdate = false;
+      var adjust = this.faceLeft ? 5 : 0;
+      this.updateColRect(2 + adjust, 22, 6, 24);
     }
 
     var general = this.updateMovement();
@@ -373,7 +434,9 @@ var PlayerEntity = me.ObjectEntity.extend({
     this.parent(this);
 
     if (general) {
-      if (!this.isFlickering() && general.yprop.isBreakable) {
+      if (!this.isFlickering() && (
+        general.yprop.isBreakable ||
+        general.xprop.isBreakable)) {
         this.doDeath();
       }
     }
@@ -382,13 +445,7 @@ var PlayerEntity = me.ObjectEntity.extend({
         this.isCurrentAnimation('jump') ||
         this.isCurrentAnimation('jump-shot')
        )) {
-      this.setCurrentAnimation('stand');
-      me.audio.play('landing');
-
-      if (this.springing) {
-        this.springing = false;
-        this.setVelocity(1.6, 7.5);
-      }
+      this.doLanding();
     }
 
     var res = me.game.collide(this);
@@ -416,7 +473,7 @@ var PlayerEntity = me.ObjectEntity.extend({
     }
 
     // Fall death
-    if (this.pos.y > (me.game.viewport.pos.y + me.game.viewport.height)) {
+    if (this.canFallDeath && this.pos.y > (me.game.viewport.pos.y + me.game.viewport.height)) {
       this.doDeath();
     }
 

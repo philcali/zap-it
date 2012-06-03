@@ -145,6 +145,7 @@ var MegaEnemy = Baddy.extend({
 var EnemyBullet = Baddy.extend({
   init: function(x, y, left) {
     var settings = {
+      name: "EnemyBullet",
       image: "other_bullet",
       spritewidth: 8
     };
@@ -876,31 +877,14 @@ var MechBot = MegaEnemy.extend({
   }
 });
 
-var Gooseman = MegaEnemy.extend({
+var MegaBoss = MegaEnemy.extend({
   init: function(x, y, settings) {
-    settings.image = 'gooseman';
-    settings.spriteheight = 32;
-    settings.spritewidth = 36;
-
     this.parent(x, y, settings, 5, 28);
 
     this.setVelocity(0, 10);
     this.gravity = 0.50;
 
     this.faceLeft = true;
-
-    this.addAnimation('stand', [0]);
-    this.addAnimation('squat', [1]);
-    this.addAnimation('jump', [2]);
-    this.addAnimation('bang-chest', [3, 4, 3, 4]);
-
-    this.addAnimation('ready', [5]);
-    this.addAnimation('release', [6]);
-
-    // TODO: rage release
-    this.addAnimation('rage', [3, 4, 5]);
-
-    this.setCurrentAnimation('jump');
 
     this.healthBar = new BossHealth(24, 16);
     this.healthBar.value = 0;
@@ -915,20 +899,442 @@ var Gooseman = MegaEnemy.extend({
 
     this.fillDelay = 3;
 
-    this.performing = false;
-    this.performingState = 'homing';
-
-    this.currentBomb = null;
-
     this.urgent = false;
     this.urgentHealth = this.health * 0.25;
+  },
+
+  doReadyLanded: function(ready, onComplete) {
     this.readyLanded = true;
-    this.setCurrentAnimation('bang-chest', function() {
-      this.setCurrentAnimation('release', function() {
-        this.fillingBar = true;
-        this.setCurrentAnimation('ready');
+    this.setCurrentAnimation('ready-landed', function() {
+      this.setCurrentAnimation('get-ready', function() {
+        this.fillingBar = ready;
+        this.setCurrentAnimation('ready', onComplete);
       });
     });
+  },
+
+  doReady: function() {
+    me.input.bindKey(me.input.KEY.A, 'left');
+    me.input.bindKey(me.input.KEY.D, 'right');
+    me.input.bindKey(me.input.KEY.J, 'fire', true);
+    me.input.bindKey(me.input.KEY.K, 'jump', true);
+
+    this.ready = true;
+  },
+
+  doFillBar: function() {
+    this.fillDelay --;
+    if (this.fillDelay <= 0) {
+      me.game.HUD.updateItemValue('gooseHealth', 1);
+      this.fillDelay = 3;
+      me.audio.play('one_health');
+    }
+
+    if (me.game.HUD.getItemValue('gooseHealth') == this.health) {
+      this.filledBar = true;
+      this.fillingBar = false;
+    }
+  },
+
+  doDeath: function() {
+    me.audio.stopTrack();
+    me.game.remove(this);
+
+    new ExplosionFactory(this);
+
+    // Stop
+    me.input.unbindKey(me.input.KEY.A);
+    me.input.unbindKey(me.input.KEY.D);
+    me.input.unbindKey(me.input.KEY.J);
+    me.input.unbindKey(me.input.KEY.K);
+
+    var afterDeath = function() {
+      me.audio.play('beat_boss', false, this.onDeath.bind(this));
+    };
+
+    me.audio.play('death', false, afterDeath.bind(this));
+  },
+
+  onCollision: function(res, obj) {
+    var prev = this.health;
+
+    this.parent(res, obj);
+
+    if (prev != this.health) {
+      me.game.add(new CharacterHit(this), this.z + 1);
+      me.game.sort();
+
+      me.game.HUD.setItemValue('gooseHealth', this.health);
+
+      this.urgent = this.health <= this.urgentHealth;
+    }
+  },
+
+  doSpecialAction: function(res) {
+    return true;
+  },
+
+  onDeath: function() {
+    var player = this.locatePlayer();
+    player.doLeave();
+  },
+
+  doPreReady: function() {
+  },
+
+  update: function() {
+    this.flipX(this.faceLeft);
+
+    var res = this.updateMovement();
+
+    this.parent(this);
+
+    if (!this.ready) {
+      // Landed
+      if (!this.readyLanded && this.vel.y == 0) {
+        this.doReadyLanded(true);
+      } else if (this.fillingBar) {
+        this.doFillBar();
+      } else if (this.filledBar) {
+        this.doReady();
+      } else {
+        this.doPreReady();
+      }
+      return true;
+    }
+
+    return this.doSpecialAction(res);
+  }
+});
+
+var CazStory = Dialogs.extend({
+  init: function() {
+    this.parent(
+    [
+      [
+        "CAZBOT:",
+        "LOGIN REQUIRED",
+        "USERNAME:",
+        "PASSWORD:"
+      ],
+      [
+        "ADAMZAP:",
+        "THE CAZBOT...",
+        "USERNAME: AZAPLE1",
+        "PASSWORD: *******"
+      ],
+      [
+        "CAZBOT:",
+        "YOUR USERNAME",
+        "HAS BEEN REMOVED.",
+        "PREPARE FOR..."
+      ],
+      [
+        " ",
+        "EXTERMINATION.",
+        " ",
+        " "
+      ],
+      [
+        "ADAMZAP:",
+        "HAHAHA! AT LEAST",
+        "LSU IS QUICK",
+        "WITH ONE THING!"
+      ]
+    ]);
+  }
+});
+
+var GooseStory = Dialogs.extend({
+  init: function() {
+    this.parent([
+      [
+        "GOOSEMAN:",
+        "SO YOU HAVE",
+        "RETURNED, AZAPLE1!?",
+        " "
+      ],
+      [
+        " ",
+        "THIS IS GREAT...",
+        "A MOODLE REQUEST",
+        "JUST CAME IN..."
+      ],
+      [
+        "ADAMZAP",
+        "STOP RIGHT THERE,",
+        "GOOSEMAN!",
+        " "
+      ],
+      [
+        " ",
+        "I ONLY RETURNED",
+        "TO FREE PCALI1!",
+        "RELEASE HIM NOW!"
+      ],
+      [
+        "GOOSEMAN:",
+        "I SEE I MUST RESORT",
+        "TO VIOLENCE TO GET",
+        "MY WAY."
+      ],
+      [
+        "ADAMZAP:",
+        "LET'S END THIS NOW!",
+        " ",
+        " "
+      ]
+    ]);
+  }
+});
+
+var Cazbot = MegaBoss.extend({
+  init: function(x, y, settings) {
+    settings.image = 'cazbot';
+    settings.spriteheight = 35;
+    settings.spritewidth = 34;
+
+    this.parent(x, y, settings);
+
+    this.setVelocity(2, 10);
+
+    this.addAnimation('stand', [8]);
+    this.addAnimation('ready-landed', [8, 7, 6, 6, 6, 7, 8]);
+    this.addAnimation('get-ready', [2, 1]);
+    this.addAnimation('ready', [1]);
+    this.addAnimation('jump', [2]);
+    this.addAnimation('shoot', [0]);
+    this.addAnimation('run', [3, 4, 5, 4]);
+
+    this.addAnimation('pump', [2, 1, 2, 1]);
+
+    this.setCurrentAnimation('jump');
+
+    this.jumpInterval = this.animationspeed * 20;
+    this.jumpCounter = this.jumpInterval;
+
+    this.shootInterval = this.jumpInterval * 3;
+    this.shootCounter = this.shootInterval;
+
+    this.shooting = false;
+    this.startingJump = false;
+    this.shootCoolDown = false;
+
+    this.shootMax = 3;
+    this.shotsFired = 0;
+
+    this.urgentInterval = 3;
+    this.urgentRounds = 0;
+  },
+
+  doReadyLanded: function(ready) {
+    this.storyTelling = me.gamestat.getItemValue('cazbot_event');
+    if (this.storyTelling) {
+      this.dialog = new CazStory(this);
+      me.game.add(this.dialog, this.z);
+      me.game.sort();
+    } else {
+      me.audio.playTrack('boss_music');
+    }
+
+    this.parent(!this.storyTelling);
+  },
+
+  doPreReady: function() {
+    if (this.storyTelling) {
+      if (this.dialog.completed) {
+        me.gamestat.setValue('cazbot_event', false);
+        this.readyLanded = false;
+      }
+    }
+  },
+
+  checkDeflect: function(res, bullet) {
+    return !this.isCurrentAnimation('shoot') && (
+      this.faceLeft && res.x > 0 ||
+      !this.faceLeft && res.x < 0
+    );
+  },
+
+  doDeath: function() {
+    var enemyBullets = me.game.getEntityByName('EnemyBullet');
+
+    for (var i = 0; i < enemyBullets.length; i ++) {
+      if (enemyBullets[i].alive) {
+        me.game.remove(enemyBullets[i]);
+      }
+    }
+
+    this.parent();
+  },
+
+  doFire: function() {
+
+    this.setCurrentAnimation('shoot', function() {
+      if (this.shotsFired == this.shootMax) {
+        this.shooting = false;
+        this.shotsFired = 0;
+
+        this.shootCoolDown = true;
+        this.setCurrentAnimation('get-ready', function() {
+          this.shootCoolDown = false;
+          if (this.urgent) {
+            this.urgentRounds ++;
+            if (this.urgentRounds == this.urgentInterval) {
+              this.urgentRounds = 0;
+            } else {
+              this.shooting = true;
+              this.faceLeft = this.mainPlayer && this.mainPlayer.pos.x < this.pos.x;
+              this.doFire();
+            }
+          }
+        });
+      } else {
+        var adjust = this.faceLeft ? 0 : 32;
+        var bullet = new EnemyBullet(this.pos.x + adjust, this.pos.y + 3, this.faceLeft);
+        me.game.add(bullet, this.z);
+        me.game.sort();
+
+        me.audio.play('enemy_shoot');
+        this.shotsFired ++;
+      }
+    });
+  },
+
+  doJump: function() {
+    var otherJump = this.parent.bind(this);
+
+    this.startingJump = true;
+    this.setCurrentAnimation('get-ready', function() {
+      this.startingJump = false;
+      this.setCurrentAnimation('jump');
+      otherJump();
+    });
+  },
+
+  onDeath: function() {
+    this.doReady();
+
+    me.game.HUD.removeItem('gooseHealth');
+
+    me.game.collisionMap.clearTile(15, 10);
+    me.game.collisionMap.clearTile(15, 11);
+    me.game.collisionMap.clearTile(15, 12);
+
+    var foreground = me.game.currentLevel.getLayerByName('foreground');
+    foreground.clearTile(15, 10);
+    foreground.clearTile(15, 11);
+    foreground.clearTile(15, 12);
+
+    me.audio.play('one_health');
+  },
+
+  doSpecialAction: function(res) {
+
+    if (res.x < 0 && this.faceLeft) {
+      this.faceLeft = false;
+    } else if (res.x > 0 && !this.faceLeft) {
+      this.faceLeft = true;
+    }
+
+    if (this.startingJump) {
+      this.vel.x = 0;
+      return true;
+    }
+
+    if (this.shootCoolDown) {
+      this.vel.x = 0;
+
+      return true;
+    }
+
+    if (!this.shooting) {
+      this.doWalk(this.faceLeft);
+      if (this.vel.y == 0 &&
+        !(this.jumping || this.falling) &&
+        !this.isCurrentAnimation('run')) {
+        this.setCurrentAnimation('run');
+        this.updateColRect(0, 30, 2, 33);
+      }
+    } else {
+      this.vel.x = 0;
+
+      if (!(this.jumping || this.falling) && this.vel.y == 0 && this.shotsFired == 0) {
+        this.doFire();
+      }
+
+      return false;
+    }
+
+    this.jumpCounter --;
+    if (this.jumpCounter <= 0) {
+      this.jumpCounter = this.jumpInterval;
+      this.doJump();
+    }
+
+    this.shootCounter --;
+    if (this.shootCounter <= 0) {
+      this.shootCounter = this.shootInterval;
+      this.mainPlayer = this.locatePlayer();
+
+      if (this.mainPlayer) {
+        this.faceLeft = this.mainPlayer.pos.x < this.pos.x;
+        this.shooting = true;
+      }
+    }
+
+    return true;
+  }
+});
+
+var Gooseman = MegaBoss.extend({
+  init: function(x, y, settings) {
+    settings.image = 'gooseman';
+    settings.spriteheight = 32;
+    settings.spritewidth = 36;
+
+    this.parent(x, y, settings);
+
+    this.addAnimation('stand', [0]);
+    this.addAnimation('squat', [1]);
+    this.addAnimation('jump', [2]);
+    this.addAnimation('ready-landed', [3, 4, 3, 4]);
+
+    this.addAnimation('get-ready', [6]);
+    this.addAnimation('ready', [5]);
+
+    this.addAnimation('rage', [3, 4, 5]);
+
+    this.setCurrentAnimation('jump');
+
+    this.performing = false;
+    this.performingState = 'homing';
+    this.storyTelling = false;
+    this.dialog = null;
+
+    this.currentBomb = null;
+  },
+
+  doReadyLanded: function(ready) {
+    this.storyTelling = me.gamestat.getItemValue('goose_event');
+    if (this.storyTelling) {
+      this.dialog = new GooseStory(this);
+      me.game.add(this.dialog, this.z);
+      me.game.sort();
+    } else {
+      me.audio.playTrack('boss_music');
+    }
+
+    this.parent(!this.storyTelling);
+  },
+
+  doPreReady: function() {
+    if (this.storyTelling) {
+      if (this.dialog.completed) {
+        me.gamestat.setValue('goose_event', false);
+        this.readyLanded = false;
+      }
+    }
   },
 
   checkPerformingState: function() {
@@ -985,7 +1391,7 @@ var Gooseman = MegaEnemy.extend({
     this.addedBomb = false;
 
     this.setCurrentAnimation('rage', function() {
-      this.setCurrentAnimation('release', function() {
+      this.setCurrentAnimation('get-ready', function() {
         if (this.addedBomb) {
           return;
         }
@@ -1002,84 +1408,7 @@ var Gooseman = MegaEnemy.extend({
     });
   },
 
-  doReady: function() {
-    me.input.bindKey(me.input.KEY.A, 'left');
-    me.input.bindKey(me.input.KEY.D, 'right');
-    me.input.bindKey(me.input.KEY.J, 'fire', true);
-    me.input.bindKey(me.input.KEY.K, 'jump', true);
-
-    this.ready = true;
-  },
-
-  doFillBar: function() {
-    this.fillDelay --;
-    if (this.fillDelay <= 0) {
-      me.game.HUD.updateItemValue('gooseHealth', 1);
-      this.fillDelay = 3;
-      me.audio.play('one_health');
-    }
-
-    if (me.game.HUD.getItemValue('gooseHealth') == this.health) {
-      this.filledBar = true;
-      this.fillingBar = false;
-    }
-  },
-
-  doDeath: function() {
-    me.audio.stopTrack();
-    me.game.remove(this);
-
-    new ExplosionFactory(this);
-
-    // Stop
-    me.input.unbindKey(me.input.KEY.A);
-    me.input.unbindKey(me.input.KEY.D);
-    me.input.unbindKey(me.input.KEY.J);
-    me.input.unbindKey(me.input.KEY.K);
-
-    var player = this.locatePlayer();
-
-    me.audio.play('death', false, function() {
-      me.audio.play('beat_boss', false, function() {
-        player.doLeave();
-      });
-    })
-  },
-
-  onCollision: function(res, obj) {
-    var prev = this.health;
-
-    this.parent(res, obj);
-
-    if (prev != this.health) {
-      me.game.add(new CharacterHit(this), this.z + 1);
-      me.game.sort();
-
-      me.game.HUD.setItemValue('gooseHealth', this.health);
-
-      this.urgent = this.health <= this.urgentHealth;
-    }
-  },
-
-  update: function() {
-    this.flipX(this.faceLeft);
-
-    var res = this.updateMovement();
-
-    this.parent(this);
-
-    if (!this.ready) {
-      // Landed
-      if (!this.readyLanded && this.vel.y == 0) {
-        this.doReadyLanded();
-      } else if (this.fillingBar) {
-        this.doFillBar();
-      } else if (this.filledBar) {
-        this.doReady();
-      }
-      return true;
-    }
-
+  doSpecialAction: function(res) {
     if (this.performing) {
       this.performing = this.checkPerformingState();
     }

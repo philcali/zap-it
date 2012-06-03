@@ -2,6 +2,7 @@ var PlayScreen = me.ScreenObject.extend({
   onResetEvent: function(data) {
     var currentLevel = me.gamestat.getItemValue('checkpoint');
     var currentHealth = new HealthBar(16, 16);
+    var currentMusic = currentLevel.split('_')[0] + '_music';
 
     me.levelDirector.loadLevel(currentLevel);
 
@@ -10,6 +11,7 @@ var PlayScreen = me.ScreenObject.extend({
     me.game.sort();
 
     me.game.viewport.fadeOut("#000000", 250);
+    me.audio.playTrack(currentMusic);
   },
 
   onDestroyEvent: function() {
@@ -24,6 +26,7 @@ var GameEnd = me.ScreenObject.extend({
     this.screen = me.loader.getImage('game_over');
 
     me.game.viewport.fadeOut("#000000", 250);
+    me.audio.playTrack('game_over');
   },
 
   init: function() {
@@ -63,6 +66,7 @@ var GameOver = me.ScreenObject.extend({
     this.screen = me.loader.getImage('game_over');
 
     me.game.viewport.fadeOut("#000000", 250);
+    me.audio.playTrack('game_over');
   },
 
   init: function() {
@@ -77,7 +81,7 @@ var GameOver = me.ScreenObject.extend({
       me.game.viewport.fadeIn("#000000", 250, function() {
         me.state.change(me.state.READY);
       });
-      return true;
+     return true;
     }
     return false;
   },
@@ -101,20 +105,16 @@ var StoryScreen = me.ScreenObject.extend({
     me.input.bindKey(me.input.KEY.ENTER, "pause", true);
     me.audio.playTrack('title_music');
 
-    this.font = new me.BitmapFont("fontx8", 8);
+    this.dialog = new Dialogs(this.dialogs, {
+      x: 32,
+      y: 150,
+      letterDelay: 5,
+      stageDelay: 25,
+      lastSentence: 2,
+      lastStage: 3
+    });
+
     this.storyBoard = me.loader.getImage('story_screen');
-    this.dialogBox = me.loader.getImage('dialog_box');
-
-    this.letterCounter = this.letterDelay;
-    this.currentLetter = 0;
-    this.currentStage = 0;
-    this.currentSentence = 0;
-    this.lastSentence = 2;
-    this.lastStage = 3;
-
-    this.changingStage = false;
-    this.stageCounter = this.stageDelay;
-    this.completed = false;
 
     // Movement inputs
     me.input.bindKey(me.input.KEY.A, "left");
@@ -125,19 +125,16 @@ var StoryScreen = me.ScreenObject.extend({
     me.input.bindKey(me.input.KEY.K, "jump", true);
     me.input.bindKey(me.input.KEY.J, "fire", true);
 
-    // TODO: change this
     me.gamestat.add('checkpoint', 'outside_01');
+    me.gamestat.add('cazbot_event', true);
+    me.gamestat.add('goose_event', true);
   },
 
   init: function() {
     this.parent(true);
 
-    this.font = null;
+    this.dialog = null;
     this.storyBoard = null;
-    this.dialogBox = null;
-
-    this.letterDelay = 5;
-    this.stageDelay = 25;
 
     this.dialogs = [
       [
@@ -164,70 +161,25 @@ var StoryScreen = me.ScreenObject.extend({
   },
 
   update: function() {
-    if (this.changingStage) {
-      this.stageCounter --;
-      if (this.stageCounter <= 0) {
-        this.stageCounter = this.stageDelay;
-        this.currentStage ++;
-        this.currentSentence = 0;
-        this.currentLetter = 0;
-        if (this.currentStage > this.lastStage) {
-          // Done
-          this.currentStage = this.lastStage;
-          this.completed = true;
-        }
-        this.changingStage = false;
-      } else {
-        return false;
-      }
-    }
 
-    this.letterCounter --;
-    if (this.letterCounter <= 0) {
-      this.letterCounter = this.letterDelay;
-      this.currentLetter++;
-      var l = this.dialogs[this.currentStage][this.currentSentence].length;
-
-      if (this.currentLetter == l) {
-        this.currentSentence ++;
-        this.currentLetter = 0;
-      }
-
-      if (this.currentSentence > this.lastSentence) {
-        this.currentSentence = this.lastSentence;
-        this.currentLetter = l - 1;
-        this.changingStage = true;
-      }
-
-      return true;
-    }
-
-    if (me.input.isKeyPressed('pause') || this.completed) {
+    if (this.dialog.completed) {
+      this.dialog.onDestroyEvent();
       me.state.change(me.state.MENU);
-      return true;
+      return false;
     }
-    return false;
+
+    return this.dialog.update();
   },
 
   onDestroyEvent: function() {
-    this.font = null;
+    this.dialog = null;
   },
 
   draw: function(context) {
     me.video.clearSurface(context, "black");
 
     context.drawImage(this.storyBoard, 0, 0);
-    context.drawImage(this.dialogBox, 32, 150);
-
-    var text = this.dialogs[this.currentStage];
-
-    for (var i = 0; i <= this.currentSentence; i ++) {
-      var cap = i == this.currentSentence ?
-        this.currentLetter : text[i].length - 1;
-      for (var j = 0; j <= cap ; j ++) {
-        this.font.draw(context, text[i][j], 48 + (9 * j), 160 + (12 * i));
-      }
-    }
+    this.dialog.draw(context);
   }
 });
 
@@ -247,6 +199,7 @@ var TitleScreen = me.ScreenObject.extend({
     this.blinkCounter = this.blinkInterval;
     this.isBlinking = false;
 
+    me.input.bindKey(me.input.KEY.ENTER, 'pause', true);
     me.gamestat.add('lives', 2);
   },
 
