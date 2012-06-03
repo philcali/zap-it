@@ -136,6 +136,14 @@ var g_resources = [{
   type: "image",
   src: "data/images/robo_car.png"
 }, {
+  name: "pcali1",
+  type: "image",
+  src: "data/images/pcali1.png"
+}, {
+  name: "adamzap",
+  type: "image",
+  src: "data/images/adamzap.png"
+}, {
   name: "enemy_die",
   type: "image",
   src: "data/images/enemy_die.png"

@@ -18,7 +18,7 @@
  </layer>
  <objectgroup name="player" width="16" height="14">
   <object name="SpawningPoint" x="118" y="153" width="22" height="24"/>
-  <object name="BossDoor" x="239" y="129" width="16" height="48">
+  <object name="BossDoor" x="238" y="130" width="16" height="48">
    <properties>
     <property name="eventDoor" value="true"/>
     <property name="to" value="caz_room"/>

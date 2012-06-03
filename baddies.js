@@ -1061,7 +1061,7 @@ var GooseStory = Dialogs.extend({
         "JUST CAME IN..."
       ],
       [
-        "ADAMZAP",
+        "ADAMZAP:",
         "STOP RIGHT THERE,",
         "GOOSEMAN!",
         " "

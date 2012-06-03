@@ -24,6 +24,8 @@ var GameEnd = me.ScreenObject.extend({
     me.input.bindKey(me.input.KEY.ENTER, "pause", true);
     this.font = new me.BitmapFont("fontx8", 8);
     this.screen = me.loader.getImage('game_over');
+    this.philip = me.loader.getImage('pcali1');
+    this.adam = me.loader.getImage('adamzap');
 
     me.game.viewport.fadeOut("#000000", 250);
     me.audio.playTrack('game_over');
@@ -34,6 +36,8 @@ var GameEnd = me.ScreenObject.extend({
 
     this.font = null;
     this.screen = null;
+    this.philip = null;
+    this.adam = null;
   },
 
   update: function() {
@@ -55,7 +59,11 @@ var GameEnd = me.ScreenObject.extend({
 
     context.drawImage(this.screen, 0, 0);
 
-    this.font.draw(context, "CONGRATULATIONS!", 180, 50);
+    this.font.draw(context, "CONGRATULATIONS,", 185, 50);
+    this.font.draw(context, "YOU FREED PCALI1!", 190, 60);
+    this.font.draw(context, "THANKS FOR PLAYING!", 200, 170);
+    context.drawImage(this.philip, 90, 75);
+    context.drawImage(this.adam, 130, 72);
   }
 });
 

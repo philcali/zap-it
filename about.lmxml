@@ -29,15 +29,27 @@ body {
           h1 "About Zap-IT!"
         >.row
           >.span12
-            p ```
+            md ```
 This game is dedicated to a former co-worker at [LSU](http://lsu.edu/), Adam
 Zapletal.
-              ```
-            p ```
+
+
 We've worked side by side for almost 5 years, and even longer if you include
 university days. The game was made to be a tribute to that time, and be a
 reference point to his departure to pursue his dreams.
+
+
+Adam's favorite video games is probably the original Megaman series in a
+certain number sequence, so I thought it would be appropriate to send him
+off with a very difficult Megaman-style platformer. It's a very truncated
+experience, and probably filled with bugs. I hope it doesn't crash on you.
               ```
+        >.row
+          >.span8.offset2
+            >.thumbnail
+              img @src="site/adam_on_guitar.jpg"
+              >.caption
+                p "The workspace."
       section
         >.page-header
           h1 "The Bro's"
@@ -64,32 +76,58 @@ the work day's slow progress.
           h1 "The Future"
         >.row
           >.span12
-            p ```
+            md ```
 Adam has left LSU to pursue contract work for a Bible publishing company,
 named [Crossway](http://www.crossway.org/). Our loss is their gain.
-              ```
-            p ```
+
+
 There is no doubt in my mind that Adam will be successful. At Crossway, he can be
 passionate about two very important things to him:
-              ```
-            ol
-              li "Python devlopment"
-              li "Jesus"
-            p ```
+
+
+  1. Python development
+  2. Jesus
+
+
 Thankfully, he will not require re-location, but there will be an empty seat
 in this cubicle during the day. A constant reminder that our friend has moved
 on.
               ```
       section
         >.page-header
-          h1 "Final Words"
+          h1 "Final Words" small "to Adam Zapletal"
         >.row
           >.span12
-            p ```
-As a programmer: great. As a friend: better. As a brother: from another mother.
+            md ```
+I've never been one for long-winded farewells, so I'm going to wrap this up
+quick:
+
+
+As a programmer: great. As a friend: better. Will you be missed at LSU?
+Absolutely. You're entering a new, exciting chapter in your career, and I'm
+very happy for you.
+
+
+I'm looking forward to hearing about your great successes.
+
+
+Good luck, dude. ![pcali1](data/images/pcali1.png) ![adamzap](data/images/adamzap.png)
               ```
-            p ```
-Good luck to you, Adam Zapletal.
+      section
+        >.page-header
+          h1 "Zap-IT! Credits"
+        >.row
+          >.span12
+            md ```
+  - The %100 of the music and 95% of the artwork is CAPCOM's
+  - The sound effects were generated using
+    [sfxr](http://www.drpetter.se/project_sfxr.html)
+  - The image edits were done using GIMP
+  - [Tiled](http://www.mapeditor.org/) for the quick level building
+  - The game engine is the fantastic
+    [melonJS](https://github.com/obiot/melonJS)
+  - Adam Zapletal for the inspiration
+  - My wife, Anna, for all the support
               ```
       footer.footer
-        p "Designed by [philcali](https://github.com/philcali)."
+        md "Designed by [philcali](https://github.com/philcali)."

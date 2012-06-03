@@ -43,7 +43,7 @@ body {
       >.row
         >.span8.offset4.help
           h3 "Thanks for playing!"
-          p "Some basic controls:"
+          p "Optimal Megaman style controls:"
           ul
             li strong "A" ": left"
             li strong "D" ": right"

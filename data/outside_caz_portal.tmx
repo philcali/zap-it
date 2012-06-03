@@ -18,7 +18,7 @@
  </layer>
  <objectgroup name="player" width="16" height="14">
   <object name="mainPlayer" x="19" y="151" width="22" height="24"/>
-  <object name="BossDoor" x="239" y="127" width="16" height="48">
+  <object name="BossDoor" x="238" y="128" width="16" height="48">
    <properties>
     <property name="eventDoor" value="true"/>
     <property name="to" value="caz_room"/>

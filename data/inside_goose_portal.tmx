@@ -20,7 +20,7 @@
  </layer>
  <objectgroup name="player" width="16" height="14">
   <object name="mainPlayer" x="20" y="128" width="17" height="31"/>
-  <object name="BossDoor" x="238" y="97" width="15" height="64">
+  <object name="BossDoor" x="237" y="98" width="15" height="64">
    <properties>
     <property name="eventDoor" value="true"/>
     <property name="to" value="goose_room"/>
