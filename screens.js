@@ -19,6 +19,50 @@ var PlayScreen = me.ScreenObject.extend({
   }
 });
 
+var Credits = me.ScreenObject.extend({
+  onResetEvent: function() {
+    me.input.bindKey(me.input.KEY.ENTER, "pause", true);
+
+    this.dialog = new Dialogs([
+      [
+        "      CREDITS",
+        "ART - MUSIC: CAPCOM",
+        "ENGINE: MELONJS",
+        "CODE: PHILCALI"
+      ],
+      [
+        " ",
+        "        FIN.",
+        " ",
+        " "
+      ]
+    ]);
+  },
+
+  init: function() {
+    this.parent(true);
+
+    this.dialog = null;
+  },
+
+  update: function() {
+    if (this.dialog.completed) {
+      this.dialog.onDestroyEvent();
+      me.game.viewport.fadeIn("#000000", 250, function() {
+        me.state.change(me.state.READY);
+      });
+      return true;
+    }
+    return this.dialog.update();
+  },
+
+  draw: function(context) {
+    me.video.clearSurface(context, "black");
+
+    this.dialog.draw(context);
+  }
+});
+
 var GameEnd = me.ScreenObject.extend({
   onResetEvent: function() {
     me.input.bindKey(me.input.KEY.ENTER, "pause", true);
@@ -43,7 +87,7 @@ var GameEnd = me.ScreenObject.extend({
   update: function() {
     if (me.input.isKeyPressed('pause')) {
       me.game.viewport.fadeIn("#000000", 250, function() {
-        me.state.change(me.state.READY);
+        me.state.change(me.state.CREDITS);
       });
       return true;
     }

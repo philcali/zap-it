@@ -26,6 +26,7 @@ var jsApp = {
     me.state.set(me.state.MENU, new TitleScreen());
     me.state.set(me.state.GAMEOVER, new GameOver());
     me.state.set(me.state.GAME_END, new GameEnd());
+    me.state.set(me.state.CREDITS, new Credits());
 
     // We do our own transitions
     me.state.setTransition(me.state.PLAY, false);
