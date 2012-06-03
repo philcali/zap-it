@@ -113,21 +113,5 @@ I'm looking forward to hearing about your great successes.
 
 Good luck, dude. ![pcali1](data/images/pcali1.png) ![adamzap](data/images/adamzap.png)
               ```
-      section
-        >.page-header
-          h1 "Zap-IT! Credits"
-        >.row
-          >.span12
-            md ```
-  - The %100 of the music and 95% of the artwork is CAPCOM's
-  - The sound effects were generated using
-    [sfxr](http://www.drpetter.se/project_sfxr.html)
-  - The image edits were done using GIMP
-  - [Tiled](http://www.mapeditor.org/) for the quick level building
-  - The game engine is the fantastic
-    [melonJS](https://github.com/obiot/melonJS)
-  - Adam Zapletal for the inspiration
-  - My wife, Anna, for all the support
-              ```
       footer.footer
         md "Designed by [philcali](https://github.com/philcali)."

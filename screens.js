@@ -71,6 +71,8 @@ var GameEnd = me.ScreenObject.extend({
     this.philip = me.loader.getImage('pcali1');
     this.adam = me.loader.getImage('adamzap');
 
+    this.cheated = me.gamestat.getItemValue('cheated');
+
     me.game.viewport.fadeOut("#000000", 250);
     me.audio.playTrack('game_over');
   },
@@ -104,10 +106,15 @@ var GameEnd = me.ScreenObject.extend({
     context.drawImage(this.screen, 0, 0);
 
     this.font.draw(context, "CONGRATULATIONS,", 185, 50);
-    this.font.draw(context, "YOU FREED PCALI1!", 190, 60);
-    this.font.draw(context, "THANKS FOR PLAYING!", 200, 170);
-    context.drawImage(this.philip, 90, 75);
-    context.drawImage(this.adam, 130, 72);
+
+    if (this.cheated) {
+      this.font.draw(context, "CHEATER!", 155, 65);
+    } else {
+      this.font.draw(context, "YOU FREED PCALI1!", 190, 60);
+      this.font.draw(context, "THANKS FOR PLAYING!", 200, 170);
+      context.drawImage(this.philip, 90, 75);
+      context.drawImage(this.adam, 130, 72);
+    }
   }
 });
 
@@ -180,6 +187,7 @@ var StoryScreen = me.ScreenObject.extend({
     me.gamestat.add('checkpoint', 'outside_01');
     me.gamestat.add('cazbot_event', true);
     me.gamestat.add('goose_event', true);
+    me.gamestat.add('cheated', false);
   },
 
   init: function() {

@@ -2,7 +2,7 @@
   <head>
     <title>Zap IT!</title>
     <link type="text/css" rel="stylesheet" href="css/bootstrap.min.css"></link>
-    <style>body { padding-top: 40px; background-color: #000000; } .help { color: #eeeeee; } #jsapp { width: 768px; margin: auto; } </style>
+    <style>body { padding-top: 40px; background-color: #000000; color: #eeeeee; } .help { color: #eeeeee; } #jsapp { width: 768px; margin: auto; } </style>
   </head>
   <body>
     <div class="navbar navbar-fixed-top">
@@ -27,6 +27,7 @@
         <div class="span12">
           <div id="jsapp">
             <script type="text/javascript" src="lib/melonJS-0.9.3-min.js"></script>
+            <script type="text/javascript" src="lib/jquery.js"></script>
             <script type="text/javascript" src="objects.js"></script>
             <script type="text/javascript" src="baddies.js"></script>
             <script type="text/javascript" src="items.js"></script>
@@ -34,13 +35,49 @@
             <script type="text/javascript" src="resources.js"></script>
             <script type="text/javascript" src="screens.js"></script>
             <script type="text/javascript" src="main.js"></script>
+            <script type="text/javascript" src="cheats.js"></script>
           </div>
         </div>
       </div>
+      <section>
+        <div class="page-header">
+          <h2>Need Cheats?</h2>
+        </div>
+        <div class="row">
+          <div class="span3">
+            <p>
+              <a href="#" data-statvalue="outside_caz_portal_checkpoint" data-statkey="checkpoint" class="cheat">
+                <img title="Cazbot fight" src="data/images/caz_fight.png" class="thumbnail"></img>
+              </a>
+            </p>
+          </div>
+          <div class="span3">
+            <p>
+              <a href="#" data-statvalue="inside_start_checkpoint" data-statkey="checkpoint" class="cheat">
+                <img title="Inside LSU" src="data/images/inside.png" class="thumbnail"></img>
+              </a>
+            </p>
+          </div>
+          <div class="span3">
+            <p>
+              <a href="#" data-statvalue="inside_goose_portal_checkpoint" data-statkey="checkpoint" class="cheat">
+                <img title="Gooseman fight" src="data/images/goose_fight.png" class="thumbnail"></img>
+              </a>
+            </p>
+          </div>
+          <div class="span3">
+            <p>
+              <a href="#" data-statvalue="9" data-statkey="lives" class="cheat">
+                <img title="Nine lives" src="data/images/nine_lives.png" class="thumbnail"></img>
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
       <div class="row">
         <div class="span8 offset4 help">
           <h3>Thanks for playing!</h3>
-          <p>Some basic controls:</p>
+          <p>Optimal Megaman style controls:</p>
           <ul>
             <li>
               <strong>A: left</strong>

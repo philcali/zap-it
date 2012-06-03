@@ -185,6 +185,10 @@ var PlayerEntity = me.ObjectEntity.extend({
       (this.faceLeft && !left) ||
       (!this.faceLeft && left);
 
+    if (directionUpdated) {
+      this.pos.x += this.faceLeft ? 2 : -2;
+    }
+
     if (this.sliding && directionUpdated) {
       this.breakSlide();
     }
@@ -240,7 +244,7 @@ var PlayerEntity = me.ObjectEntity.extend({
   },
 
   doStride: function(left) {
-    this.doWalk(this.faceLeft);
+    this.doWalk(left);
     this.faceLeft = left;
 
     if (this.isCurrentAnimation('walk')) {

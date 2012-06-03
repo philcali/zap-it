@@ -8,9 +8,6 @@ html
 body {
   padding-top: 40px;
   background-color: #000000;
-}
-
-.help {
   color: #eeeeee;
 }
 
@@ -33,6 +30,7 @@ body {
         >.span12
           >#jsapp
             js @src="lib/melonJS-0.9.3-min.js"
+            js @src="lib/jquery.js"
             js @src="objects.js"
             js @src="baddies.js"
             js @src="items.js"
@@ -40,6 +38,27 @@ body {
             js @src="resources.js"
             js @src="screens.js"
             js @src="main.js"
+            js @src="cheats.js"
+      section
+        >.page-header
+          h2 "Need Cheats?"
+        >.row
+          >.span3
+            p
+              a.cheat @href="#" @data-statkey="checkpoint" @data-statvalue="outside_caz_portal_checkpoint"
+                img.thumbnail @title="Cazbot fight" @src="data/images/caz_fight.png"
+          >.span3
+            p
+              a.cheat @href="#" @data-statkey="checkpoint" @data-statvalue="inside_start_checkpoint"
+                img.thumbnail @title="Inside LSU" @src="data/images/inside.png"
+          >.span3
+            p
+              a.cheat @href="#" @data-statkey="checkpoint" @data-statvalue="inside_goose_portal_checkpoint"
+                img.thumbnail @title="Gooseman fight" @src="data/images/goose_fight.png"
+          >.span3
+            p
+              a.cheat @href="#" @data-statkey="lives" @data-statvalue="9"
+                img.thumbnail @title="Nine lives" @src="data/images/nine_lives.png"
       >.row
         >.span8.offset4.help
           h3 "Thanks for playing!"

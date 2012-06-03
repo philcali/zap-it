@@ -1,5 +1,8 @@
 var jsApp = {
   onload: function() {
+
+    // var scale = me.sys.ua.match(/cros/) ? 2.0 : 3.0;
+
     if (!me.video.init('jsapp', 256, 224, true, 3.0)) {
       alert("Sorry, but your browser does not support html 5 canvas.");
          return;
